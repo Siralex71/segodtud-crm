@@ -1682,6 +1682,7 @@ tr:hover td{background:#f7fbff;}
 
 <div class="toast" id="toast"></div>
 
+<script>
 // ── SUPABASE CONFIG ──
 const SUPA_URL = 'https://sohzgxxyaemndpodsthp.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvaHpneHh5YWVtbmRwb2RzdGhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MjE1MDIsImV4cCI6MjA5MzM5NzUwMn0.wH9RsQiCybP37hpJsNPQLNOVAEoPNKtIZDFu1X5dLYY';
@@ -1737,7 +1738,6 @@ async function loadFromSupabase() {
   return false;
 }
 
-<script>
 // ── DATA ──
 let customers = [
   {id:1,first:'Thomas',last:'Kjærgaard',addr:'Marselis Boulevard 42, 8000 Aarhus C',zip:'8000',phone:'20 34 56 78',email:'tk@privat.dk',type:'Privat',status:'Aktiv',price:425,freq:'Månedlig',notes:'Portkode: 1234. Parkér ved siden af indkørslen.',blockedDays:[4],prefTime:'09:00',empId:1,
