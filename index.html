@@ -6579,8 +6579,8 @@ document.getElementById('todayDate').textContent=new Date().toLocaleDateString('
     loaded = await loadFromSupabase();
     if (loaded) {
       addNotif('Cloud sync','Data indlæst fra skyen ☁️','success');
-      // Opdater localStorage med cloud data
-      saveToLocalStorage();
+      // Opdater localStorage direkte uden at trigge sync
+      try { localStorage.setItem('clearview_crm_v1', JSON.stringify({customers,visits,route,deals,weekSchedule,visitStatuses,employees,invoiceCounter,firmSettings})); } catch(e) {}
     }
   } catch(e) {}
   if (!loaded) {
