@@ -6086,11 +6086,6 @@ function checkBackupReminder(){
 
 // Warn before closing if unsaved changes
 let hasUnsavedChanges=false;
-const _origSaveToLS=saveToLocalStorage;
-function saveToLocalStorage(){
-  _origSaveToLS();
-  hasUnsavedChanges=false;
-}
 // Mark changes when data is modified
 ['customers','visits','weekSchedule','tilbuds','deals'].forEach(()=>{
   // We track via a simple flag set on any user interaction
