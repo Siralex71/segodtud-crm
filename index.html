@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SeGodtUd CRM – Vinduespudser</title>
+<title>Se Godt Ud CRM</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -437,7 +437,7 @@ tr:hover td{background:#f7fbff;}
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">🪟</div>
-    <div class="login-title">SeGodtUd CRM</div>
+    <div class="login-title">Se Godt Ud CRM</div>
     <div class="login-sub">Log ind som chef eller medarbejder</div>
     <!-- Role tabs -->
     <div style="display:flex;gap:0;border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:20px;">
@@ -467,8 +467,7 @@ tr:hover td{background:#f7fbff;}
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon">🪟</div>
-    <h2>SeGodtUd CRM</h2>
-    <p>Vinduespudser Pro</p>
+    <h2>Se Godt Ud CRM</h2>
   </div>
   <nav class="sidebar-nav">
     <button class="nav-item active" onclick="showView('dashboard',this)"><i class="fa fa-chart-pie"></i> Dashboard</button>
@@ -487,9 +486,9 @@ tr:hover td{background:#f7fbff;}
     <button class="nav-item" onclick="showView('ferie',this)"><i class="fa fa-umbrella-beach"></i> Ferie & fridage</button>
     <button class="nav-item" onclick="showView('indstillinger',this)"><i class="fa fa-gear"></i> Indstillinger</button>
   </nav>
-  <div class="sidebar-footer">v3.0 &nbsp;·&nbsp; SeGodtUd CRM</div>
+  <div class="sidebar-footer">v3.0 &nbsp;·&nbsp; Se Godt Ud CRM</div>
   </nav>
-  <div class="sidebar-footer">v3.0 &nbsp;·&nbsp; SeGodtUd CRM</div>
+  <div class="sidebar-footer">v3.0 &nbsp;·&nbsp; Se Godt Ud CRM</div>
 </aside>
 
 <main class="main">
@@ -751,16 +750,19 @@ tr:hover td{background:#f7fbff;}
     <!-- KUNDER -->
     <div class="view" id="view-customers">
       <div class="card">
-        <div class="card-header">
-          <div><h3>Kundeoversigt</h3><p id="customer-count-text">Indlæser...</p></div>
-          <button id="ny-kunde-btn" class="btn btn-primary" onclick="openModal('add')"><i class="fa fa-plus"></i> Ny kunde</button>
-        </div>
-        <div class="search-bar">
-          <i class="fa fa-search" style="color:var(--muted)"></i>
-          <input type="text" id="customerSearch" placeholder="Søg på navn, adresse eller telefon..." oninput="renderCustomers()">
-          <select id="statusFilter" onchange="renderCustomers()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;">
-            <option value="">Alle statuser</option><option>Aktiv</option><option>Ny</option><option>Inaktiv</option>
-          </select>
+        <div class="card-header" style="flex-wrap:wrap;gap:10px;padding:12px 22px;">
+          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+            <h3>Kundeoversigt</h3>
+            <span id="customer-count-text" style="font-size:0.75rem;color:var(--muted);"></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px;">
+            <i class="fa fa-search" style="color:var(--muted);flex-shrink:0;"></i>
+            <input type="text" id="customerSearch" placeholder="Søg på navn, adresse eller telefon..." oninput="renderCustomers()" style="flex:1;padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;min-width:0;">
+            <select id="statusFilter" onchange="renderCustomers()" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;flex-shrink:0;">
+              <option value="">Alle statuser</option><option>Aktiv</option><option>Ny</option><option>Inaktiv</option>
+            </select>
+          </div>
+          <button id="ny-kunde-btn" class="btn btn-primary" onclick="openModal('add')" style="flex-shrink:0;"><i class="fa fa-plus"></i> Ny kunde</button>
         </div>
         <table>
           <thead><tr><th>Navn</th><th>Adresse</th><th>Telefon</th><th>Type</th><th>Status</th><th>Interval</th><th>Næste besøg</th><th>Opgaver</th><th>Spærrede dage</th><th>Pris ex. moms</th><th>Inkl. moms</th><th>Handlinger</th></tr></thead>
@@ -896,7 +898,7 @@ tr:hover td{background:#f7fbff;}
           </div>
           <div class="invoice-preview" id="invoice-preview">
             <div class="inv-header">
-              <div><div class="inv-logo">🪟 ClearView<span id="inv-company-tagline">Professionel vinduespudsning</span></div><div style="font-size:0.78rem;color:var(--muted);margin-top:10px;" id="inv-from-detail"></div></div>
+              <div><div class="inv-logo">🪟 Se Godt Ud<span id="inv-company-tagline">Professionel vinduespudsning</span></div><div style="font-size:0.78rem;color:var(--muted);margin-top:10px;" id="inv-from-detail"></div></div>
               <div class="inv-meta"><span style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;">Faktura nr.</span><strong id="inv-number">#2026-001</strong><div style="margin-top:8px;font-size:0.78rem;">Dato: <span id="inv-date-display"></span></div><div style="font-size:0.78rem;">Forfald: <span id="inv-due-display"></span></div></div>
             </div>
             <div class="inv-parties">
@@ -1548,7 +1550,7 @@ tr:hover td{background:#f7fbff;}
     <!-- Mini invoice preview -->
     <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px;">
       <div style="background:var(--blue);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;">
-        <div style="color:#fff;font-family:'Playfair Display',serif;font-size:1rem;">🪟 ClearView</div>
+        <div style="color:#fff;font-family:'Playfair Display',serif;font-size:1rem;">🪟 Se Godt Ud</div>
         <div style="color:#fff;font-size:0.82rem;">Faktura <strong id="ir-inv-num">#–</strong></div>
       </div>
       <div style="padding:16px 18px;background:#fff;">
@@ -1571,7 +1573,7 @@ tr:hover td{background:#f7fbff;}
     <!-- Email fields -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
       <div class="form-group"><label>Send til email</label><input id="ir-email" type="email" placeholder="kunde@mail.dk"></div>
-      <div class="form-group"><label>Emne</label><input id="ir-subject" placeholder="Faktura fra ClearView"></div>
+      <div class="form-group"><label>Emne</label><input id="ir-subject" placeholder="Faktura fra Se Godt Ud"></div>
     </div>
     <div class="form-group" style="margin-bottom:16px;"><label>Besked</label><textarea id="ir-body" style="min-height:80px;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;width:100%;resize:vertical;" placeholder="Hej..."></textarea></div>
     <div class="autoinv-toggle">
@@ -2463,11 +2465,11 @@ function scheduleRecurring(cid, startDateStr){
   let count=0;
 
   // Build a list of {interval, taskName} entries
-  // If customer has tasks, use each task's own interval
-  // Otherwise fall back to the customer's default freq
+  // Guard: minimum 7 days to prevent infinite loops or daily placement
+  const safeFreqDays=(freq)=>{const d=freqDays[freq];return(d&&d>=7)?d:(freqDays[c.freq]||30);};
   const intervals=(c.tasks&&c.tasks.length)
-    ? c.tasks.map(t=>({days:freqDays[t.freq]||30, label:t.name}))
-    : [{days:freqDays[c.freq]||30, label:'Besøg'}];
+    ? c.tasks.map(t=>({days:safeFreqDays(t.freq), label:t.name}))
+    : [{days:safeFreqDays(c.freq), label:'Besøg'}];
 
   intervals.forEach(({days, label})=>{
     let cursor=new Date(startDateStr);
@@ -3691,7 +3693,7 @@ function openInvoiceReview(dateStr,cid){
 
   // Pre-fill email
   document.getElementById('ir-email').value=c.email||'';
-  document.getElementById('ir-subject').value=`Faktura ${invNum} – ${firmSettings.company||'ClearView'}`;
+  document.getElementById('ir-subject').value=`Faktura ${invNum} – ${firmSettings.company||'Se Godt Ud Ejendomsservice'}`;
   document.getElementById('ir-body').value=
     `Hej ${c.first},\n\nHermed fremsendes faktura for udført vinduespudsning den ${today.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'})}.\n\nBeløb: ${total.toLocaleString('da-DK')} kr. inkl. moms\nBetalingsfrist: ${due.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'})}\n${firmSettings.bank?'Betaling til: '+firmSettings.bank+'\n':''}\nMed venlig hilsen\n${firmSettings.company||'Se Godt Ud Ejendomsservice'}`;
 
@@ -4026,7 +4028,7 @@ function saveTilbud(status){
   if(editingTilbudId)tilbuds[tilbuds.findIndex(x=>x.id===editingTilbudId)]=t;
   else tilbuds.push(t);
   if(status==='sent'&&t.email){
-    const subj=encodeURIComponent(`Tilbud ${t.num} fra ${firmSettings.company||'ClearView'}`);
+    const subj=encodeURIComponent(`Tilbud ${t.num} fra ${firmSettings.company||'Se Godt Ud Ejendomsservice'}`);
     const body=encodeURIComponent(t.msg||`Kær ${t.name},\n\nHermed fremsendes tilbud på vinduespudsning.\n\nTotal: ${total.toLocaleString('da-DK')} kr. inkl. moms.\nGyldig til: ${t.expiry}\n\nMed venlig hilsen\n${firmSettings.company||'Se Godt Ud Ejendomsservice'}`);
     window.location.href=`mailto:${t.email}?subject=${subj}&body=${body}`;
     addNotif(`Tilbud sendt til ${t.name}`,`${t.num} · ${total.toLocaleString('da-DK')} kr.`,'invoice');
@@ -4725,7 +4727,7 @@ function sendTomorrowSMS(){
   entries.forEach(e=>{
     const c=customers.find(x=>x.id===e.cid);
     if(!c||!c.phone)return;
-    const msg=msgTemplate.replace('{navn}',c.first).replace('{tid}',e.time||'aftalt tid').replace('{firma}',firmSettings.company||'ClearView');
+    const msg=msgTemplate.replace('{navn}',c.first).replace('{tid}',e.time||'aftalt tid').replace('{firma}',firmSettings.company||'Se Godt Ud Ejendomsservice');
     const phone=c.phone.replace(/\s/g,'');
     window.open(`sms:${phone}?body=${encodeURIComponent(msg)}`,'_blank');
     sent++;
@@ -4737,7 +4739,7 @@ function sendSMSToCustomer(cid,dateStr){
   const c=customers.find(x=>x.id===cid);if(!c||!c.phone)return;
   const entry=(weekSchedule[dateStr]||[]).find(x=>x.cid===cid);
   const msgTemplate=firmSettings.smsMsg||'Hej {navn}, vi kommer i morgen kl. {tid} for at pudse vinduer. Mvh {firma}';
-  const msg=msgTemplate.replace('{navn}',c.first).replace('{tid}',entry?.time||'aftalt tid').replace('{firma}',firmSettings.company||'ClearView');
+  const msg=msgTemplate.replace('{navn}',c.first).replace('{tid}',entry?.time||'aftalt tid').replace('{firma}',firmSettings.company||'Se Godt Ud Ejendomsservice');
   const phone=c.phone.replace(/\s/g,'');
   window.open(`sms:${phone}?body=${encodeURIComponent(msg)}`,'_blank');
   toast(`SMS åbnet til ${c.first} ✓`);
@@ -5353,7 +5355,7 @@ function sendReminder(id){
   const c=customers.find(x=>x.id===f.customerId);
   if(!c?.email){toast('Ingen email på kunden');return;}
   const subj=encodeURIComponent(`Rykker – Faktura #${f.num}`);
-  const body=encodeURIComponent(`Kære ${c.first},\n\nVi skal venligst minde om betaling af faktura #${f.num} pålydende ${f.total.toLocaleString('da-DK')} kr.\n\nFakturaen var forfalden ${f.dueDate}.\n\nMed venlig hilsen\n${firmSettings.company||'ClearView'}`);
+  const body=encodeURIComponent(`Kære ${c.first},\n\nVi skal venligst minde om betaling af faktura #${f.num} pålydende ${f.total.toLocaleString('da-DK')} kr.\n\nFakturaen var forfalden ${f.dueDate}.\n\nMed venlig hilsen\n${firmSettings.company||'Se Godt Ud Ejendomsservice'}`);
   window.location.href=`mailto:${c.email}?subject=${subj}&body=${body}`;
   toast('Rykker åbnet i email ✓');
 }
@@ -5708,7 +5710,7 @@ function downloadKontrakt(){
 }
 function sendKontrakt(){
   const c=customers.find(x=>x.id===kontraktCid);if(!c||!c.email){toast('Ingen email på kunden');return;}
-  const subj=encodeURIComponent(`Serviceaftale – ${firmSettings.company||'ClearView'}`);
+  const subj=encodeURIComponent(`Serviceaftale – ${firmSettings.company||'Se Godt Ud Ejendomsservice'}`);
   const body=encodeURIComponent(`Kære ${c.first},\n\nVedhæftet finder du vores serviceaftale for vinduespudsning på ${c.addr}.\n\nVi ser frem til et godt samarbejde!\n\nMed venlig hilsen\n${firmSettings.company||'Se Godt Ud Ejendomsservice'}`);
   window.location.href=`mailto:${c.email}?subject=${subj}&body=${body}`;
   toast('Email åbnet ✓');
@@ -5839,7 +5841,7 @@ window.addEventListener('appinstalled',()=>{
   const btn=document.getElementById('pwa-install-btn');
   if(btn)btn.style.display='none';
   toast('App installeret på din enhed ✓');
-  addNotif('App installeret','SeGodtUd CRM er nu installeret som app','success');
+  addNotif('App installeret','Se Godt Ud CRM er nu installeret som app','success');
 });
 
 function pwaInstall(){
@@ -5856,13 +5858,13 @@ function pwaInstall(){
     let msg='';
     if(/iPhone|iPad/i.test(ua))msg='På iPhone/iPad:\n1. Tryk på Del-knappen (firkant med pil op)\n2. Vælg "Føj til hjemmeskærm"\n3. Tryk "Tilføj"';
     else if(/Android/i.test(ua))msg='På Android:\n1. Tryk på menuen (tre prikker)\n2. Vælg "Tilføj til startskærm"\n3. Bekræft';
-    else msg='I Chrome/Edge på computer:\n1. Klik på install-ikonet i adresselinjen (⊕)\n   – eller –\n2. Menu → "Installer SeGodtUd CRM"';
+    else msg='I Chrome/Edge på computer:\n1. Klik på install-ikonet i adresselinjen (⊕)\n   – eller –\n2. Menu → "Installer Se Godt Ud CRM"';
     alert(msg);
   }
 }
 
 // Add PWA manifest dynamically
-const manifest={name:'SeGodtUd CRM',short_name:'ClearView',description:'Vinduespudser CRM',start_url:'.',display:'standalone',background_color:'#0d2340',theme_color:'#1a73c8',icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%231a73c8"/><text y=".9em" font-size="80" x="10">🪟</text></svg>',sizes:'any',type:'image/svg+xml'}]};
+const manifest={name:'Se Godt Ud CRM',short_name:'Se Godt Ud',description:'Se Godt Ud Ejendomsservice CRM',start_url:'.',display:'standalone',background_color:'#0d2340',theme_color:'#1a73c8',icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%231a73c8"/><text y=".9em" font-size="80" x="10">🪟</text></svg>',sizes:'any',type:'image/svg+xml'}]};
 const mBlob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
 const mUrl=URL.createObjectURL(mBlob);
 const mLink=document.createElement('link');mLink.rel='manifest';mLink.href=mUrl;document.head.appendChild(mLink);
