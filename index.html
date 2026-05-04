@@ -650,6 +650,9 @@ tr:hover td{background:#f7fbff;}
           <select id="arshjul-emp" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;" onchange="renderArshjul()">
             <option value="all">Alle medarbejdere</option>
           </select>
+          <select id="arshjul-parent" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;" onchange="renderArshjul()">
+            <option value="all">Alle hovedkunder</option>
+          </select>
         </div>
       </div>
       <div class="card" style="margin-bottom:18px;">
@@ -1179,7 +1182,7 @@ tr:hover td{background:#f7fbff;}
         <div class="form-group"><label>Telefon</label><input id="f-phone" placeholder="20 12 34 56"></div>
         <div class="form-group"><label>Email</label><input id="f-email" placeholder="jens@mail.dk"></div>
         <div class="form-group"><label>Foretrukken ankomsttid</label><input id="f-prefTime" type="time" placeholder="08:00"></div>
-        <div class="form-group"><label>Type</label><select id="f-type"><option>Privat</option><option>Erhverv</option></select></div>
+        <div class="form-group"><label>Type</label><select id="f-type"><option>Erhverv</option><option>Privat</option></select></div>
         <div class="form-group"><label>Status</label><select id="f-status"><option>Aktiv</option><option>Ny</option><option>Inaktiv</option></select></div>
         <div class="form-group full"><label>Tags</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;" id="f-tags-wrap">
@@ -1704,11 +1707,12 @@ async function supaFetch(path, method='GET', body=null) {
 // ── SUPABASE SYNC ──
 async function syncToSupabase() {
   try {
-    // Gem hele CRM-data som én JSON blob i en simpel key-value tabel
+    const empOffDaysArr={};
+    Object.entries(empOffDays).forEach(([k,v])=>{empOffDaysArr[k]=[...v];});
     await supaFetch('crm_data?key=eq.main', 'DELETE');
     await supaFetch('crm_data', 'POST', {
       key: 'main',
-      data: JSON.stringify({customers, visits, route, deals, weekSchedule, visitStatuses, employees, invoiceCounter, firmSettings})
+      data: JSON.stringify({customers, visits, route, deals, weekSchedule, visitStatuses, employees, invoiceCounter, firmSettings, tilbuds, facturas, customerGroups, parentCustomers, holidayDays, empOffDaysArr})
     });
     console.log('✓ Synkroniseret til Supabase');
   } catch(e) { console.warn('Supabase sync fejl:', e); }
@@ -1728,6 +1732,15 @@ async function loadFromSupabase() {
       if (data.employees) employees = data.employees;
       if (data.invoiceCounter) invoiceCounter = data.invoiceCounter;
       if (data.firmSettings) Object.assign(firmSettings, data.firmSettings);
+      if (data.tilbuds) tilbuds = data.tilbuds;
+      if (data.facturas) facturas = data.facturas;
+      if (data.customerGroups) customerGroups = data.customerGroups;
+      if (data.parentCustomers) parentCustomers = data.parentCustomers;
+      if (data.holidayDays) Object.assign(holidayDays, data.holidayDays);
+      if (data.empOffDaysArr) Object.entries(data.empOffDaysArr).forEach(([k,v])=>{
+        const key=isNaN(k)?k:parseInt(k);
+        empOffDays[key]=new Set(v);
+      });
       console.log('✓ Data indlæst fra Supabase');
       return true;
     }
@@ -2091,7 +2104,7 @@ function renderCustomers(){
       <td><div class="customer-name">${c.first} ${c.last}${(()=>{const par=parentCustomers.find(p=>(p.childIds||[]).includes(c.id));return par?`<span style="background:#e8f4fd;color:var(--blue);border-radius:5px;padding:1px 6px;font-size:0.6rem;font-weight:700;margin-left:5px;"><i class="fa fa-building"></i> ${par.company}</span>`:'';})()}</div><div class="customer-addr">${c.email}</div></td>
       <td>${c.addr}<br><span style="font-size:0.72rem;color:var(--muted)">Postnr: ${c.zip||'–'}</span></td>
       <td>${c.phone}</td><td>${typeTag(c.type)}</td>
-      <td>${statusTag(c.status)}${(c.tags||[]).map(t=>{const cls={VIP:'tag-vip','Ny kunde':'tag-nykunde',Fast:'tag-fast',Prioritet:'tag-prioritet',Sæson:'tag-sæson',Problem:'tag-problem'};return`<span class="customer-tag ${cls[t]||'tag-grey'}" style="margin-left:3px">${t}</span>`;}).join('')}${c.udstyr&&c.udstyr.length?`<span style="margin-left:4px;" title="Udstyr: ${c.udstyr.join(', ')}">${udstyrIcons(c.udstyr)}</span>`:''}</td>
+      <td>${statusTag(c.status)}${c.udstyr&&c.udstyr.length?`<span style="margin-left:4px;" title="Udstyr: ${c.udstyr.join(', ')}">${udstyrIcons(c.udstyr)}</span>`:''}</td>
       <td><span class="tag tag-grey">${c.freq}</span></td>
       <td><span class="${vs.cls}">${vs.label}</span></td>
       <td>${tasks}</td>
@@ -6141,8 +6154,22 @@ function renderArshjul(){
   const empSel=document.getElementById('arshjul-emp');
   if(empSel){empSel.innerHTML='<option value="all">Alle medarbejdere</option>'+employees.map(e=>`<option value="${e.id}">${e.first} ${e.last}</option>`).join('');}
   const empFilter=empSel?.value||'all';
+
+  // Populate hoofdkunde filter
+  const parentSel=document.getElementById('arshjul-parent');
+  if(parentSel){
+    const prev=parentSel.value;
+    parentSel.innerHTML='<option value="all">Alle hovedkunder</option>'+parentCustomers.map(p=>`<option value="${p.id}">${p.company}</option>`).join('');
+    parentSel.value=prev||'all';
+  }
+  const parentFilter=parentSel?.value||'all';
+
   let shown=customers.filter(c=>c.status==='Aktiv');
   if(empFilter!=='all')shown=shown.filter(c=>String(c.empId)===empFilter);
+  if(parentFilter!=='all'){
+    const par=parentCustomers.find(p=>String(p.id)===String(parentFilter));
+    if(par)shown=shown.filter(c=>(par.childIds||[]).includes(c.id));
+  }
 
   const freqPerYear={'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
   const monthNames=['Jan','Feb','Mar','Apr','Maj','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
