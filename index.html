@@ -763,7 +763,7 @@ tr:hover td{background:#f7fbff;}
           <button id="ny-kunde-btn" class="btn btn-primary" onclick="openModal('add')" style="flex-shrink:0;"><i class="fa fa-plus"></i> Ny kunde</button>
         </div>
         <table>
-          <thead><tr><th>Navn</th><th>Adresse</th><th>Telefon</th><th>Type</th><th>Status</th><th>Interval</th><th>Næste besøg</th><th>Opgaver</th><th>Spærrede dage</th><th>Pris ex. moms</th><th>Inkl. moms</th><th>Handlinger</th></tr></thead>
+          <thead><tr><th>Navn</th><th>Adresse</th><th>Telefon</th><th>Type</th><th>Status</th><th>Interval</th><th>Næste besøg</th><th>Opgaver</th><th>Spærrede dage</th><th>Pris ex. moms</th><th>Års-omsætning</th><th>Handlinger</th></tr></thead>
           <tbody id="customer-tbody"></tbody>
         </table>
       </div>
@@ -1182,6 +1182,7 @@ tr:hover td{background:#f7fbff;}
         <div class="form-group"><label>Telefon</label><input id="f-phone" placeholder="20 12 34 56"></div>
         <div class="form-group"><label>Email</label><input id="f-email" placeholder="jens@mail.dk"></div>
         <div class="form-group"><label>Foretrukken ankomsttid</label><input id="f-prefTime" type="time" placeholder="08:00"></div>
+        <div class="form-group"><label>Første besøgsdato</label><input id="f-firstVisit" type="date" placeholder=""></div>
         <div class="form-group"><label>Type</label><select id="f-type"><option>Erhverv</option><option>Privat</option></select></div>
         <div class="form-group"><label>Status</label><select id="f-status"><option>Aktiv</option><option>Ny</option><option>Inaktiv</option></select></div>
         <div class="form-group full"><label>Tags</label>
@@ -1205,7 +1206,7 @@ tr:hover td{background:#f7fbff;}
             <div style="font-size:0.85rem;">Ex. moms: <strong id="f-price-auto">0 kr.</strong> &nbsp;·&nbsp; Inkl. moms: <strong id="f-price-incl-auto">0 kr.</strong></div>
           </div>
         </div>
-        <div class="form-group"><label>Standard frekvens</label><select id="f-freq"><option>Månedlig</option><option>Hver 2. måned</option><option>Kvartalsvis</option><option>Halvårlig</option><option>Årlig</option></select></div>
+        <div class="form-group"><label>Standard frekvens</label><select id="f-freq"><option>Ugentlig</option><option>Hver 14. dag</option><option>Månedlig</option><option>Hver 2. måned</option><option>Kvartalsvis</option><option>Halvårlig</option><option>Årlig</option></select></div>
         <div class="form-group full"><label>Noter (til medarbejder)</label><textarea id="f-notes" placeholder="Eks: Ring på dørklokken · Hund i haven · Parkér ved siden af indkørslen..."></textarea></div>
         <!-- Day suggestion box -->
         <div class="form-group full" id="zip-suggestion-wrap" style="display:none;">
@@ -1455,6 +1456,7 @@ tr:hover td{background:#f7fbff;}
       <div class="form-group"><label>CVR-nummer</label><input id="pc-cvr" placeholder="12345678" maxlength="8"></div>
       <div class="form-group"><label>EAN-nummer</label><input id="pc-ean" placeholder="5790001234567" maxlength="13"></div>
       <div class="form-group full"><label>Faktura-adresse</label><input id="pc-addr" placeholder="Stationsvej 1, 2730 Herlev"></div>
+      <div class="form-group"><label>Postnummer</label><input id="pc-zip" placeholder="2730" maxlength="4"></div>
       <div class="form-group full"><label>Note</label><textarea id="pc-note" placeholder="Fx betalingsbetingelser, kontaktinfo..."></textarea></div>
     </div>
     <div style="margin:16px 0 8px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);">Tilknyt lokationer (underkunder)</div>
@@ -1809,7 +1811,12 @@ let setTimeTarget=null; // {dateStr, cid}
 let invLines=[{desc:'Vinduespudsning',qty:1,price:0}];
 
 // ── INTERVAL HELPERS ──
-const freqDays={'Månedlig':30,'Hver 2. måned':60,'Kvartalsvis':90,'Halvårlig':180,'Årlig':365};
+const freqDays={'Ugentlig':7,'Hver 14. dag':14,'Månedlig':30,'Hver 2. måned':60,'Kvartalsvis':90,'Halvårlig':180,'Årlig':365};
+function annualRev(c){
+  const freqPerYear={'Ugentlig':52,'Hver 14. dag':26,'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
+  if(c.tasks&&c.tasks.length)return c.tasks.reduce((s,t)=>s+t.price*(freqPerYear[t.freq]||freqPerYear[c.freq]||12),0);
+  return customerPrice(c)*(freqPerYear[c.freq]||12);
+}
 const dayNames=['Mandag','Tirsdag','Onsdag','Torsdag','Fredag'];
 function getLastVisit(cid){const v=visits.filter(x=>x.customerId===cid);if(!v.length)return null;return v.sort((a,b)=>b.date.localeCompare(a.date))[0].date;}
 function getNextVisitDate(c){const last=getLastVisit(c.id);if(!last)return null;const d=new Date(last);d.setDate(d.getDate()+(freqDays[c.freq]||30));return d.toISOString().slice(0,10);}
@@ -1904,7 +1911,7 @@ function renderDashboard(){
   const actualRev=myVisits.reduce((s,v)=>s+v.price,0);
 
   // ── FORVENTET ÅRSOMSÆTNING – pris × antal besøg per år per kunde ──
-  const freqPerYear={'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
+  const freqPerYear={'Ugentlig':52,'Hver 14. dag':26,'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
   const expectedAnnual=activeCustomers.reduce((s,c)=>{
     // Use task-based pricing if tasks exist, otherwise use base price
     const taskPrice=c.tasks&&c.tasks.length
@@ -2015,7 +2022,7 @@ function renderTaskRows(){
       <input value="${t.name||''}" placeholder="Opgavebeskrivelse" oninput="taskRowsData[${i}].name=this.value">
       <input type="number" value="${t.price||''}" placeholder="0" oninput="taskRowsData[${i}].price=+this.value;updateModalPrice()">
       <select onchange="taskRowsData[${i}].freq=this.value">
-        ${['Månedlig','Hver 2. måned','Kvartalsvis','Halvårlig','Årlig'].map(f=>`<option${t.freq===f?' selected':''}>${f}</option>`).join('')}
+        ${['Ugentlig','Hver 14. dag','Månedlig','Hver 2. måned','Kvartalsvis','Halvårlig','Årlig'].map(f=>`<option${t.freq===f?' selected':''}>${f}</option>`).join('')}
       </select>
       <input type="number" value="${t.duration||30}" min="5" step="5" placeholder="30" oninput="taskRowsData[${i}].duration=+this.value" title="Minutter">
       <button class="task-remove" onclick="removeTaskRow(${i})"><i class="fa fa-xmark"></i></button>
@@ -2111,7 +2118,7 @@ function renderCustomers(){
       <td>${blocked}</td>
       ${isEmp
         ?`<td colspan="2" style="color:var(--muted);font-style:italic;font-size:0.75rem;">–</td>`
-        :`<td style="font-weight:700;color:var(--blue)">${customerPrice(c).toLocaleString("da-DK")} kr.</td><td style="font-weight:600;color:var(--muted);font-size:0.78rem;">${Math.round(customerPrice(c)*1.25).toLocaleString('da-DK')} kr.</td>`
+        :`<td style="font-weight:700;color:var(--blue)">${customerPrice(c).toLocaleString("da-DK")} kr.</td><td style="font-weight:600;color:var(--green);font-size:0.78rem;">${Math.round(annualRev(c)).toLocaleString('da-DK')} kr./år</td>`
       }
       <td style="white-space:nowrap;">${isEmp?`
         <button class="btn btn-sm" style="background:#f0fdf4;color:#16a34a;" title="Start timer" onclick="openTimerModal(${c.id})"><i class="fa fa-stopwatch"></i> Timer</button>
@@ -2151,11 +2158,12 @@ function openModal(mode,id){
     const manualPriceEl=document.getElementById('f-price');
     if(manualPriceEl)manualPriceEl.value=c.tasks&&c.tasks.length?'':c.price||'';
     document.getElementById('f-prefTime').value=c.prefTime||'';
+    document.getElementById('f-firstVisit').value=c.firstVisit||'';
     for(let i=0;i<5;i++)document.getElementById('bd-'+i).checked=(c.blockedDays||[]).includes(i);
     taskRowsData=(c.tasks||[]).map(t=>({...t}));
     renderUdstyrCheckboxes(c.udstyr||[]);
   }else{
-    ['f-first','f-last','f-addr','f-zip','f-phone','f-email','f-notes','f-prefTime'].forEach(x=>document.getElementById(x).value='');
+    ['f-first','f-last','f-addr','f-zip','f-phone','f-email','f-notes','f-prefTime','f-firstVisit'].forEach(x=>document.getElementById(x).value='');
     for(let i=0;i<5;i++)document.getElementById('bd-'+i).checked=false;
     taskRowsData=[];
     renderUdstyrCheckboxes([]);
@@ -2185,6 +2193,7 @@ function saveCustomer(){
     freq:document.getElementById('f-freq').value,
     notes:document.getElementById('f-notes').value,
     prefTime:document.getElementById('f-prefTime').value,
+    firstVisit:document.getElementById('f-firstVisit').value,
     blockedDays:blocked,
     tasks:taskRowsData.map(t=>({...t,id:t.id||++nextId})),
     udstyr:getSelectedUdstyr(),
@@ -2197,7 +2206,16 @@ function saveCustomer(){
     :parseInt(document.getElementById('f-price').value)||0;
   if(!c.first||!c.addr){toast('Udfyld venligst navn og adresse');return;}
   if(editingId){customers[customers.findIndex(x=>x.id===editingId)]=c;toast('Kunde opdateret ✓');}
-  else{customers.push(c);toast('Kunde tilføjet ✓');}
+  else{
+    customers.push(c);
+    // Auto-planlæg første besøg hvis dato er sat
+    if(c.firstVisit){
+      const count=scheduleRecurring(c.id, c.firstVisit);
+      toast(`Kunde tilføjet ✓ – ${count} besøg planlagt fra ${c.firstVisit}`);
+    } else {
+      toast('Kunde tilføjet ✓');
+    }
+  }
   closeModal('modal-customer');
   renderCustomers();
   saveToLocalStorage();
@@ -6114,7 +6132,7 @@ function renderDashboardChart(){
   if(!el)return;
   const now=new Date();
   const bars=[];
-  const freqPerYear={'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
+  const freqPerYear={'Ugentlig':52,'Hver 14. dag':26,'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
   for(let i=5;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
     const m=d.getMonth(),y=d.getFullYear();
@@ -6171,7 +6189,7 @@ function renderArshjul(){
     if(par)shown=shown.filter(c=>(par.childIds||[]).includes(c.id));
   }
 
-  const freqPerYear={'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
+  const freqPerYear={'Ugentlig':52,'Hver 14. dag':26,'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
   const monthNames=['Jan','Feb','Mar','Apr','Maj','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
 
   // For each customer, calculate which months they're visited
@@ -6237,7 +6255,7 @@ function renderArshjul(){
 
 function arshjulShowMonth(month,year){
   const monthNames=['Januar','Februar','Marts','April','Maj','Juni','Juli','August','September','Oktober','November','December'];
-  const freqPerYear={'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
+  const freqPerYear={'Ugentlig':52,'Hver 14. dag':26,'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
   function getVisitMonths(c){const fp=freqPerYear[c.freq]||12;const interval=Math.round(12/fp);const months=[];for(let m=0;m<12;m+=interval)months.push(m);return months;}
   const visiting=customers.filter(c=>c.status==='Aktiv'&&getVisitMonths(c).includes(month));
   const totalRev=visiting.reduce((s,c)=>s+customerPrice(c),0);
@@ -6307,7 +6325,7 @@ function renderArshjulMini(){
   const el=document.getElementById('dash-arshjul-mini');
   if(!el)return;
   const now=new Date();
-  const freqPerYear={'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
+  const freqPerYear={'Ugentlig':52,'Hver 14. dag':26,'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
   function getVisitMonths(c){const fp=freqPerYear[c.freq]||12;const interval=Math.round(12/fp);const m=[];for(let i=0;i<12;i+=interval)m.push(i);return m;}
   const active=customers.filter(c=>c.status==='Aktiv');
   const monthNames=['J','F','M','A','M','J','J','A','S','O','N','D'];
@@ -6329,7 +6347,7 @@ function openParentModal(id){
   editingParentId=id||null;
   document.getElementById('parent-modal-title').textContent=id?'Rediger hovedkunde':'Ny hovedkunde';
   const p=id?parentCustomers.find(x=>x.id===id):null;
-  ['pc-company','pc-contact','pc-phone','pc-email','pc-cvr','pc-ean','pc-addr','pc-note'].forEach(fid=>{
+  ['pc-company','pc-contact','pc-phone','pc-email','pc-cvr','pc-ean','pc-addr','pc-zip','pc-note'].forEach(fid=>{
     const key=fid.replace('pc-','');
     const el=document.getElementById(fid);
     if(el)el.value=p?p[key]||'':'';
@@ -6358,6 +6376,7 @@ function saveParentCustomer(){
     cvr:document.getElementById('pc-cvr').value,
     ean:document.getElementById('pc-ean').value,
     addr:document.getElementById('pc-addr').value,
+    zip:document.getElementById('pc-zip').value,
     note:document.getElementById('pc-note').value,
     childIds,
   };
