@@ -658,12 +658,12 @@ tr:hover td{background:#f7fbff;}
           </select>
         </div>
       </div>
-      <div class="card" style="margin-bottom:18px;">
-        <div style="padding:18px;" id="arshjul-grid"></div>
-      </div>
-      <div class="card" id="arshjul-detail" style="display:none;">
+      <div class="card" id="arshjul-detail" style="display:none;margin-bottom:18px;">
         <div class="card-header"><h3 id="arshjul-detail-title"></h3></div>
         <div id="arshjul-detail-list" style="padding:8px 0;"></div>
+      </div>
+      <div class="card" style="margin-bottom:18px;">
+        <div style="padding:18px;" id="arshjul-grid"></div>
       </div>
     </div>
 
@@ -6222,7 +6222,7 @@ function arshjulShowMonth(month,year){
     </div>`;
   }).join('');
   document.getElementById('arshjul-detail').style.display='block';
-  document.getElementById('arshjul-detail').scrollIntoView({behavior:'smooth',block:'nearest'});
+
 }
 
 function renderArshjulMini(){
