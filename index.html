@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ClearView CRM – Vinduespudser</title>
+<title>Se Godt Ud CRM</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -437,7 +437,7 @@ tr:hover td{background:#f7fbff;}
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">🪟</div>
-    <div class="login-title">ClearView CRM</div>
+    <div class="login-title">Se Godt Ud CRM</div>
     <div class="login-sub">Log ind som chef eller medarbejder</div>
     <!-- Role tabs -->
     <div style="display:flex;gap:0;border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:20px;">
@@ -467,7 +467,7 @@ tr:hover td{background:#f7fbff;}
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon">🪟</div>
-    <h2>ClearView CRM</h2>
+    <h2>Se Godt Ud CRM</h2>
     <p>Vinduespudser Pro</p>
   </div>
   <nav class="sidebar-nav">
@@ -487,9 +487,9 @@ tr:hover td{background:#f7fbff;}
     <button class="nav-item" onclick="showView('ferie',this)"><i class="fa fa-umbrella-beach"></i> Ferie & fridage</button>
     <button class="nav-item" onclick="showView('indstillinger',this)"><i class="fa fa-gear"></i> Indstillinger</button>
   </nav>
-  <div class="sidebar-footer">v2.0 &nbsp;·&nbsp; ClearView CRM</div>
+  <div class="sidebar-footer">v2.0 &nbsp;·&nbsp; Se Godt Ud CRM</div>
   </nav>
-  <div class="sidebar-footer">v1.8 &nbsp;·&nbsp; ClearView CRM</div>
+  <div class="sidebar-footer">v2.0 &nbsp;·&nbsp; Se Godt Ud CRM</div>
 </aside>
 
 <main class="main">
@@ -896,7 +896,7 @@ tr:hover td{background:#f7fbff;}
           </div>
           <div class="invoice-preview" id="invoice-preview">
             <div class="inv-header">
-              <div><div class="inv-logo">🪟 ClearView<span id="inv-company-tagline">Professionel vinduespudsning</span></div><div style="font-size:0.78rem;color:var(--muted);margin-top:10px;" id="inv-from-detail"></div></div>
+              <div><div class="inv-logo">🪟 Se Godt Ud<span id="inv-company-tagline">Professionel vinduespudsning</span></div><div style="font-size:0.78rem;color:var(--muted);margin-top:10px;" id="inv-from-detail"></div></div>
               <div class="inv-meta"><span style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;">Faktura nr.</span><strong id="inv-number">#2026-001</strong><div style="margin-top:8px;font-size:0.78rem;">Dato: <span id="inv-date-display"></span></div><div style="font-size:0.78rem;">Forfald: <span id="inv-due-display"></span></div></div>
             </div>
             <div class="inv-parties">
@@ -912,7 +912,7 @@ tr:hover td{background:#f7fbff;}
           <div class="inv-form-section">
             <h3><i class="fa fa-building" style="color:var(--blue);margin-right:8px"></i>Dit firma</h3>
             <div class="form-grid">
-              <div class="form-group full"><label>Firmanavn</label><input id="inv-f-company" placeholder="ClearView Vinduespudsning" oninput="updateInvoice()"></div>
+              <div class="form-group full"><label>Firmanavn</label><input id="inv-f-company" placeholder="Se Godt Ud Ejendomsservice" oninput="updateInvoice()"></div>
               <div class="form-group full"><label>Adresse</label><input id="inv-f-addr" placeholder="Vestergade 1, 8000 Aarhus" oninput="updateInvoice()"></div>
               <div class="form-group"><label>CVR</label><input id="inv-f-cvr" placeholder="12345678" oninput="updateInvoice()"></div>
               <div class="form-group"><label>Telefon</label><input id="inv-f-phone" placeholder="20 12 34 56" oninput="updateInvoice()"></div>
@@ -1076,12 +1076,12 @@ tr:hover td{background:#f7fbff;}
             <div class="settings-section">
               <h3><i class="fa fa-building"></i> Firmaoplysninger</h3>
               <div class="form-grid">
-                <div class="form-group full"><label>Firmanavn</label><input id="set-company" placeholder="ClearView Vinduespudsning" oninput="firmSettings.company=this.value;saveToLocalStorage()"></div>
+                <div class="form-group full"><label>Firmanavn</label><input id="set-company" placeholder="Se Godt Ud Ejendomsservice" oninput="firmSettings.company=this.value;saveToLocalStorage()"></div>
                 <div class="form-group full"><label>Adresse</label><input id="set-addr" placeholder="Vestergade 1, 8000 Aarhus" oninput="firmSettings.addr=this.value;saveToLocalStorage()"></div>
                 <div class="form-group"><label>CVR-nummer</label><input id="set-cvr" placeholder="12345678" oninput="firmSettings.cvr=this.value;saveToLocalStorage()"></div>
                 <div class="form-group"><label>Telefon</label><input id="set-phone" placeholder="20 12 34 56" oninput="firmSettings.phone=this.value;saveToLocalStorage()"></div>
-                <div class="form-group full"><label>Email</label><input id="set-email" placeholder="info@clearview.dk" oninput="firmSettings.email=this.value;saveToLocalStorage()"></div>
-                <div class="form-group full"><label>Hjemmeside</label><input id="set-web" placeholder="www.clearview.dk" oninput="firmSettings.web=this.value;saveToLocalStorage()"></div>
+                <div class="form-group full"><label>Email</label><input id="set-email" placeholder="info@segodtud.dk" oninput="firmSettings.email=this.value;saveToLocalStorage()"></div>
+                <div class="form-group full"><label>Hjemmeside</label><input id="set-web" placeholder="www.sgue.dk" oninput="firmSettings.web=this.value;saveToLocalStorage()"></div>
                 <div class="form-group full"><label>Bank / Reg. + kontonummer</label><input id="set-bank" placeholder="Reg. 1234 – Konto 12345678" oninput="firmSettings.bank=this.value;saveToLocalStorage()"></div>
               </div>
             </div>
@@ -1543,7 +1543,7 @@ tr:hover td{background:#f7fbff;}
     <!-- Mini invoice preview -->
     <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px;">
       <div style="background:var(--blue);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;">
-        <div style="color:#fff;font-family:'Playfair Display',serif;font-size:1rem;">🪟 ClearView</div>
+        <div style="color:#fff;font-family:'Playfair Display',serif;font-size:1rem;">🪟 Se Godt Ud</div>
         <div style="color:#fff;font-size:0.82rem;">Faktura <strong id="ir-inv-num">#–</strong></div>
       </div>
       <div style="padding:16px 18px;background:#fff;">
@@ -1566,7 +1566,7 @@ tr:hover td{background:#f7fbff;}
     <!-- Email fields -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
       <div class="form-group"><label>Send til email</label><input id="ir-email" type="email" placeholder="kunde@mail.dk"></div>
-      <div class="form-group"><label>Emne</label><input id="ir-subject" placeholder="Faktura fra ClearView"></div>
+      <div class="form-group"><label>Emne</label><input id="ir-subject" placeholder="Faktura fra Se Godt Ud"></div>
     </div>
     <div class="form-group" style="margin-bottom:16px;"><label>Besked</label><textarea id="ir-body" style="min-height:80px;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;width:100%;resize:vertical;" placeholder="Hej..."></textarea></div>
     <div class="autoinv-toggle">
@@ -1725,7 +1725,7 @@ let weekSchedule=buildExampleSchedule();
 let visitStatuses={};
 let invoiceCounter=1;
 // Firm settings (reused across invoice generation)
-let firmSettings={company:'ClearView Vinduespudsning',addr:'',cvr:'',phone:'',bank:''};
+let firmSettings={company:'Se Godt Ud Ejendomsservice',addr:'',cvr:'',phone:'',bank:''};
 let employees=[
   {id:1,first:'Jan',last:'Pedersen',initials:'JP',color:'#1a73c8',phone:'20 00 00 01',email:'jp@firma.dk'},
   {id:2,first:'Sara',last:'Madsen',initials:'SM',color:'#16a34a',phone:'20 00 00 02',email:'sm@firma.dk'},
@@ -1739,7 +1739,12 @@ let setTimeTarget=null; // {dateStr, cid}
 let invLines=[{desc:'Vinduespudsning',qty:1,price:0}];
 
 // ── INTERVAL HELPERS ──
-const freqDays={'Månedlig':30,'Hver 2. måned':60,'Kvartalsvis':90,'Halvårlig':180,'Årlig':365};
+const freqDays={'Ugentlig':7,'Hver 14. dag':14,'Månedlig':30,'Hver 2. måned':60,'Kvartalsvis':90,'Halvårlig':180,'Årlig':365};
+const freqPerYear={'Ugentlig':52,'Hver 14. dag':26,'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
+function annualRev(c){
+  if(c.tasks&&c.tasks.length)return c.tasks.reduce((s,t)=>s+t.price*(freqPerYear[t.freq]||freqPerYear[c.freq]||12),0);
+  return customerPrice(c)*(freqPerYear[c.freq]||12);
+}
 const dayNames=['Mandag','Tirsdag','Onsdag','Torsdag','Fredag'];
 function getLastVisit(cid){const v=visits.filter(x=>x.customerId===cid);if(!v.length)return null;return v.sort((a,b)=>b.date.localeCompare(a.date))[0].date;}
 function getNextVisitDate(c){const last=getLastVisit(c.id);if(!last)return null;const d=new Date(last);d.setDate(d.getDate()+(freqDays[c.freq]||30));return d.toISOString().slice(0,10);}
@@ -3035,7 +3040,7 @@ function updateInvoice(){
   document.getElementById('inv-date-display').textContent=new Date(dateVal).toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'});
   document.getElementById('inv-due-display').textContent=dueDate.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'});
   document.getElementById('inv-number').textContent='#'+(document.getElementById('inv-number-inp').value||'–');
-  const company=document.getElementById('inv-f-company').value||'ClearView Vinduespudsning';
+  const company=document.getElementById('inv-f-company').value||'Se Godt Ud Ejendomsservice';
   const fAddr=document.getElementById('inv-f-addr').value||'';
   const fCvr=document.getElementById('inv-f-cvr').value||'';
   const fPhone=document.getElementById('inv-f-phone').value||'';
@@ -3061,7 +3066,7 @@ function updateInvoice(){
 }
 function downloadInvoicePDF(){
   const{jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
-  const company=document.getElementById('inv-f-company').value||'ClearView Vinduespudsning';
+  const company=document.getElementById('inv-f-company').value||'Se Godt Ud Ejendomsservice';
   const toName=document.getElementById('inv-to-name-inp').value||'Kunde';
   const toAddr=document.getElementById('inv-to-addr').value||'';
   const toEmail=document.getElementById('inv-to-email').value||'';
@@ -3633,9 +3638,9 @@ function openInvoiceReview(dateStr,cid){
 
   // Pre-fill email
   document.getElementById('ir-email').value=c.email||'';
-  document.getElementById('ir-subject').value=`Faktura ${invNum} – ${firmSettings.company||'ClearView'}`;
+  document.getElementById('ir-subject').value=`Faktura ${invNum} – ${firmSettings.company||'Se Godt Ud'}`;
   document.getElementById('ir-body').value=
-    `Hej ${c.first},\n\nHermed fremsendes faktura for udført vinduespudsning den ${today.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'})}.\n\nBeløb: ${total.toLocaleString('da-DK')} kr. inkl. moms\nBetalingsfrist: ${due.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'})}\n${firmSettings.bank?'Betaling til: '+firmSettings.bank+'\n':''}\nMed venlig hilsen\n${firmSettings.company||'ClearView Vinduespudsning'}`;
+    `Hej ${c.first},\n\nHermed fremsendes faktura for udført vinduespudsning den ${today.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'})}.\n\nBeløb: ${total.toLocaleString('da-DK')} kr. inkl. moms\nBetalingsfrist: ${due.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'})}\n${firmSettings.bank?'Betaling til: '+firmSettings.bank+'\n':''}\nMed venlig hilsen\n${firmSettings.company||'Se Godt Ud Ejendomsservice'}`;
 
   // Add to facturas overview
   const paydays=firmSettings.paydays||14;
@@ -3666,7 +3671,7 @@ function irDownloadPDF(){
   const{jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
   const{c,invNum,lines,sub,vat,total,today,due}=irData;
-  const company=firmSettings.company||'ClearView Vinduespudsning';
+  const company=firmSettings.company||'Se Godt Ud Ejendomsservice';
   doc.setFillColor(26,115,200);doc.rect(0,0,210,28,'F');
   doc.setTextColor(255,255,255);doc.setFontSize(16);doc.setFont('helvetica','bold');doc.text('FAKTURA',14,17);
   doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text('#'+invNum,196,17,{align:'right'});
@@ -4015,8 +4020,8 @@ function saveTilbud(status){
   if(editingTilbudId)tilbuds[tilbuds.findIndex(x=>x.id===editingTilbudId)]=t;
   else tilbuds.push(t);
   if(status==='sent'&&t.email){
-    const subj=encodeURIComponent(`Tilbud ${t.num} fra ${firmSettings.company||'ClearView'}`);
-    const body=encodeURIComponent(t.msg||`Kær ${t.name},\n\nHermed fremsendes tilbud på vinduespudsning.\n\nTotal: ${total.toLocaleString('da-DK')} kr. inkl. moms.\nGyldig til: ${t.expiry}\n\nMed venlig hilsen\n${firmSettings.company||'ClearView Vinduespudsning'}`);
+    const subj=encodeURIComponent(`Tilbud ${t.num} fra ${firmSettings.company||'Se Godt Ud'}`);
+    const body=encodeURIComponent(t.msg||`Kær ${t.name},\n\nHermed fremsendes tilbud på vinduespudsning.\n\nTotal: ${total.toLocaleString('da-DK')} kr. inkl. moms.\nGyldig til: ${t.expiry}\n\nMed venlig hilsen\n${firmSettings.company||'Se Godt Ud Ejendomsservice'}`);
     window.location.href=`mailto:${t.email}?subject=${subj}&body=${body}`;
     addNotif(`Tilbud sendt til ${t.name}`,`${t.num} · ${total.toLocaleString('da-DK')} kr.`,'invoice');
   }
@@ -4102,7 +4107,7 @@ function openGoogleMapsRoute(){
 function generateRapport(){
   const{jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
-  const company=firmSettings.company||'ClearView Vinduespudsning';
+  const company=firmSettings.company||'Se Godt Ud Ejendomsservice';
   const now=new Date();
   const monthLabel=now.toLocaleDateString('da-DK',{month:'long',year:'numeric'});
 
@@ -4714,7 +4719,7 @@ function sendTomorrowSMS(){
   entries.forEach(e=>{
     const c=customers.find(x=>x.id===e.cid);
     if(!c||!c.phone)return;
-    const msg=msgTemplate.replace('{navn}',c.first).replace('{tid}',e.time||'aftalt tid').replace('{firma}',firmSettings.company||'ClearView');
+    const msg=msgTemplate.replace('{navn}',c.first).replace('{tid}',e.time||'aftalt tid').replace('{firma}',firmSettings.company||'Se Godt Ud');
     const phone=c.phone.replace(/\s/g,'');
     window.open(`sms:${phone}?body=${encodeURIComponent(msg)}`,'_blank');
     sent++;
@@ -4726,7 +4731,7 @@ function sendSMSToCustomer(cid,dateStr){
   const c=customers.find(x=>x.id===cid);if(!c||!c.phone)return;
   const entry=(weekSchedule[dateStr]||[]).find(x=>x.cid===cid);
   const msgTemplate=firmSettings.smsMsg||'Hej {navn}, vi kommer i morgen kl. {tid} for at pudse vinduer. Mvh {firma}';
-  const msg=msgTemplate.replace('{navn}',c.first).replace('{tid}',entry?.time||'aftalt tid').replace('{firma}',firmSettings.company||'ClearView');
+  const msg=msgTemplate.replace('{navn}',c.first).replace('{tid}',entry?.time||'aftalt tid').replace('{firma}',firmSettings.company||'Se Godt Ud');
   const phone=c.phone.replace(/\s/g,'');
   window.open(`sms:${phone}?body=${encodeURIComponent(msg)}`,'_blank');
   toast(`SMS åbnet til ${c.first} ✓`);
@@ -5342,7 +5347,7 @@ function sendReminder(id){
   const c=customers.find(x=>x.id===f.customerId);
   if(!c?.email){toast('Ingen email på kunden');return;}
   const subj=encodeURIComponent(`Rykker – Faktura #${f.num}`);
-  const body=encodeURIComponent(`Kære ${c.first},\n\nVi skal venligst minde om betaling af faktura #${f.num} pålydende ${f.total.toLocaleString('da-DK')} kr.\n\nFakturaen var forfalden ${f.dueDate}.\n\nMed venlig hilsen\n${firmSettings.company||'ClearView'}`);
+  const body=encodeURIComponent(`Kære ${c.first},\n\nVi skal venligst minde om betaling af faktura #${f.num} pålydende ${f.total.toLocaleString('da-DK')} kr.\n\nFakturaen var forfalden ${f.dueDate}.\n\nMed venlig hilsen\n${firmSettings.company||'Se Godt Ud'}`);
   window.location.href=`mailto:${c.email}?subject=${subj}&body=${body}`;
   toast('Rykker åbnet i email ✓');
 }
@@ -5587,7 +5592,7 @@ function downloadArsrapport(){
   const doc=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
   const yVisits=visits.filter(v=>v.date.startsWith(year));
   const totalRev=yVisits.reduce((s,v)=>s+v.price,0);
-  const company=firmSettings.company||'ClearView Vinduespudsning';
+  const company=firmSettings.company||'Se Godt Ud Ejendomsservice';
   // Header
   doc.setFillColor(13,35,64);doc.rect(0,0,210,32,'F');
   doc.setTextColor(255,255,255);doc.setFontSize(18);doc.setFont('helvetica','bold');
@@ -5625,7 +5630,7 @@ let kontraktCid=null;
 function openKontrakt(cid){
   kontraktCid=cid;
   const c=customers.find(x=>x.id===cid);if(!c)return;
-  const company=firmSettings.company||'ClearView Vinduespudsning';
+  const company=firmSettings.company||'Se Godt Ud Ejendomsservice';
   const today=new Date().toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'});
   const tasks=(c.tasks||[]);
   const totalMonth=tasks.reduce((s,t)=>s+t.price,0)||customerPrice(c);
@@ -5662,7 +5667,7 @@ function downloadKontrakt(){
   const c=customers.find(x=>x.id===kontraktCid);if(!c)return;
   const{jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
-  const company=firmSettings.company||'ClearView Vinduespudsning';
+  const company=firmSettings.company||'Se Godt Ud Ejendomsservice';
   const today=new Date().toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'});
   const tasks=c.tasks||[];
   const total=tasks.reduce((s,t)=>s+t.price,0)||customerPrice(c);
@@ -5697,8 +5702,8 @@ function downloadKontrakt(){
 }
 function sendKontrakt(){
   const c=customers.find(x=>x.id===kontraktCid);if(!c||!c.email){toast('Ingen email på kunden');return;}
-  const subj=encodeURIComponent(`Serviceaftale – ${firmSettings.company||'ClearView'}`);
-  const body=encodeURIComponent(`Kære ${c.first},\n\nVedhæftet finder du vores serviceaftale for vinduespudsning på ${c.addr}.\n\nVi ser frem til et godt samarbejde!\n\nMed venlig hilsen\n${firmSettings.company||'ClearView Vinduespudsning'}`);
+  const subj=encodeURIComponent(`Serviceaftale – ${firmSettings.company||'Se Godt Ud'}`);
+  const body=encodeURIComponent(`Kære ${c.first},\n\nVedhæftet finder du vores serviceaftale for vinduespudsning på ${c.addr}.\n\nVi ser frem til et godt samarbejde!\n\nMed venlig hilsen\n${firmSettings.company||'Se Godt Ud Ejendomsservice'}`);
   window.location.href=`mailto:${c.email}?subject=${subj}&body=${body}`;
   toast('Email åbnet ✓');
 }
@@ -5828,7 +5833,7 @@ window.addEventListener('appinstalled',()=>{
   const btn=document.getElementById('pwa-install-btn');
   if(btn)btn.style.display='none';
   toast('App installeret på din enhed ✓');
-  addNotif('App installeret','ClearView CRM er nu installeret som app','success');
+  addNotif('App installeret','Se Godt Ud CRM er nu installeret som app','success');
 });
 
 function pwaInstall(){
@@ -5845,13 +5850,13 @@ function pwaInstall(){
     let msg='';
     if(/iPhone|iPad/i.test(ua))msg='På iPhone/iPad:\n1. Tryk på Del-knappen (firkant med pil op)\n2. Vælg "Føj til hjemmeskærm"\n3. Tryk "Tilføj"';
     else if(/Android/i.test(ua))msg='På Android:\n1. Tryk på menuen (tre prikker)\n2. Vælg "Tilføj til startskærm"\n3. Bekræft';
-    else msg='I Chrome/Edge på computer:\n1. Klik på install-ikonet i adresselinjen (⊕)\n   – eller –\n2. Menu → "Installer ClearView CRM"';
+    else msg='I Chrome/Edge på computer:\n1. Klik på install-ikonet i adresselinjen (⊕)\n   – eller –\n2. Menu → "Installer Se Godt Ud CRM"';
     alert(msg);
   }
 }
 
 // Add PWA manifest dynamically
-const manifest={name:'ClearView CRM',short_name:'ClearView',description:'Vinduespudser CRM',start_url:'.',display:'standalone',background_color:'#0d2340',theme_color:'#1a73c8',icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%231a73c8"/><text y=".9em" font-size="80" x="10">🪟</text></svg>',sizes:'any',type:'image/svg+xml'}]};
+const manifest={name:'Se Godt Ud CRM',short_name:'Se Godt Ud',description:'Vinduespudser CRM',start_url:'.',display:'standalone',background_color:'#0d2340',theme_color:'#1a73c8',icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%231a73c8"/><text y=".9em" font-size="80" x="10">🪟</text></svg>',sizes:'any',type:'image/svg+xml'}]};
 const mBlob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
 const mUrl=URL.createObjectURL(mBlob);
 const mLink=document.createElement('link');mLink.rel='manifest';mLink.href=mUrl;document.head.appendChild(mLink);
