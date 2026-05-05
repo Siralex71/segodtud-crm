@@ -1739,12 +1739,7 @@ let setTimeTarget=null; // {dateStr, cid}
 let invLines=[{desc:'Vinduespudsning',qty:1,price:0}];
 
 // ── INTERVAL HELPERS ──
-const freqDays={'Ugentlig':7,'Hver 14. dag':14,'Månedlig':30,'Hver 2. måned':60,'Kvartalsvis':90,'Halvårlig':180,'Årlig':365};
-const freqPerYear={'Ugentlig':52,'Hver 14. dag':26,'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
-function annualRev(c){
-  if(c.tasks&&c.tasks.length)return c.tasks.reduce((s,t)=>s+t.price*(freqPerYear[t.freq]||freqPerYear[c.freq]||12),0);
-  return customerPrice(c)*(freqPerYear[c.freq]||12);
-}
+const freqDays={'Månedlig':30,'Hver 2. måned':60,'Kvartalsvis':90,'Halvårlig':180,'Årlig':365};
 const dayNames=['Mandag','Tirsdag','Onsdag','Torsdag','Fredag'];
 function getLastVisit(cid){const v=visits.filter(x=>x.customerId===cid);if(!v.length)return null;return v.sort((a,b)=>b.date.localeCompare(a.date))[0].date;}
 function getNextVisitDate(c){const last=getLastVisit(c.id);if(!last)return null;const d=new Date(last);d.setDate(d.getDate()+(freqDays[c.freq]||30));return d.toISOString().slice(0,10);}
