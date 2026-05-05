@@ -3723,6 +3723,70 @@ function renderPipeline(){
 function openDealModal(){['d-title','d-customer','d-note'].forEach(id=>document.getElementById(id).value='');document.getElementById('d-value').value='';document.getElementById('d-prob').value='50';document.getElementById('modal-deal').classList.add('open');}
 function saveDeal(){const d={id:++nextId,title:document.getElementById('d-title').value,customer:document.getElementById('d-customer').value,value:parseInt(document.getElementById('d-value').value)||0,stage:parseInt(document.getElementById('d-stage').value),prob:parseInt(document.getElementById('d-prob').value)||50,note:document.getElementById('d-note').value};if(!d.title){toast('Udfyld titel');return;}deals.push(d);closeModal('modal-deal');renderPipeline();toast('Aftale tilføjet ✓');}
 
+// ── SUPABASE CONFIG ──
+const SUPA_URL = 'https://sohzgxxyaemndpodsthp.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvaHpneHh5YWVtbmRwb2RzdGhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MjE1MDIsImV4cCI6MjA5MzM5NzUwMn0.wH9RsQiCybP37hpJsNPQLNOVAEoPNKtIZDFu1X5dLYY';
+
+async function supaFetch(path, method='GET', body=null) {
+  const opts = {
+    method,
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'return=representation' : ''
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(SUPA_URL + '/rest/v1/' + path, opts);
+  if (!res.ok) { console.error('Supabase error:', await res.text()); return null; }
+  if (method === 'DELETE' || res.status === 204) return true;
+  return res.json();
+}
+
+async function syncToSupabase() {
+  try {
+    const empOffDaysArr={};
+    Object.entries(empOffDays).forEach(([k,v])=>{empOffDaysArr[k]=[...v];});
+    await supaFetch('crm_data?key=eq.main', 'DELETE');
+    await supaFetch('crm_data', 'POST', {
+      key: 'main',
+      data: JSON.stringify({customers,visits,route,deals,weekSchedule,visitStatuses,employees,invoiceCounter,firmSettings,tilbuds,facturas,customerGroups,parentCustomers,holidayDays,empOffDaysArr})
+    });
+    console.log('✓ Synkroniseret til Supabase');
+  } catch(e) { console.warn('Supabase sync fejl:', e); }
+}
+
+async function loadFromSupabase() {
+  try {
+    const res = await supaFetch('crm_data?key=eq.main');
+    if (res && res.length > 0) {
+      const data = JSON.parse(res[0].data);
+      if(data.customers)customers=data.customers;
+      if(data.visits)visits=data.visits;
+      if(data.route)route=data.route;
+      if(data.deals)deals=data.deals;
+      if(data.weekSchedule)weekSchedule=data.weekSchedule;
+      if(data.visitStatuses)visitStatuses=data.visitStatuses;
+      if(data.employees)employees=data.employees;
+      if(data.invoiceCounter)invoiceCounter=data.invoiceCounter;
+      if(data.firmSettings)Object.assign(firmSettings,data.firmSettings);
+      if(data.tilbuds)tilbuds=data.tilbuds;
+      if(data.facturas)facturas=data.facturas;
+      if(data.customerGroups)customerGroups=data.customerGroups;
+      if(data.parentCustomers)parentCustomers=data.parentCustomers;
+      if(data.holidayDays)Object.assign(holidayDays,data.holidayDays);
+      if(data.empOffDaysArr)Object.entries(data.empOffDaysArr).forEach(([k,v])=>{
+        const key=isNaN(k)?k:parseInt(k);
+        empOffDays[key]=new Set(v);
+      });
+      console.log('✓ Data indlæst fra Supabase');
+      return true;
+    }
+  } catch(e) { console.warn('Supabase load fejl:', e); }
+  return false;
+}
+
 // ── 💾 LOCALSTORAGE ──
 const LS_KEY='clearview_crm_v1';
 function saveToLocalStorage(){
@@ -3735,6 +3799,7 @@ function saveToLocalStorage(){
     const ind=document.getElementById('save-indicator');
     ind.classList.add('show');
     setTimeout(()=>ind.classList.remove('show'),2000);
+    syncToSupabase();
   }catch(e){console.warn('LS save failed',e);}
 }
 function loadFromLocalStorage(){
@@ -6515,8 +6580,19 @@ function checkCustomerReminders(){
 // ── INIT ──
 document.getElementById('todayDate').textContent=new Date().toLocaleDateString('da-DK',{weekday:'short',day:'numeric',month:'short'});
 
-const loaded=loadFromLocalStorage();
-if(loaded){addNotif('Data genindlæst','Dine gemte data er indlæst automatisk','success');}
+// Indlæs localStorage straks så login virker
+loadFromLocalStorage();
+
+// Prøv Supabase i baggrunden uden at blokere login
+(async () => {
+  try {
+    const loaded = await Promise.race([
+      loadFromSupabase(),
+      new Promise((_,reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+    ]);
+    if (loaded) { addNotif('Cloud sync','Data indlæst fra skyen ☁️','success'); renderDashboard(); }
+  } catch(e) { console.log('Supabase ikke tilgængelig – kører offline'); }
+})();
 
 setTimeout(()=>{checkNotifications();checkExpiringTilbuds();},1500);
 setInterval(()=>{checkNotifications();checkExpiringTilbuds();},5*60*1000);
