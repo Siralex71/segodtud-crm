@@ -763,7 +763,7 @@ tr:hover td{background:#f7fbff;}
           </select>
         </div>
         <table>
-          <thead><tr><th>Navn</th><th>Adresse</th><th>Telefon</th><th>Type</th><th>Status</th><th>Interval</th><th>Næste besøg</th><th>Opgaver</th><th>Spærrede dage</th><th>Pris ex. moms</th><th>Inkl. moms</th><th>Handlinger</th></tr></thead>
+          <thead><tr><th>Navn</th><th>Adresse</th><th>Telefon</th><th>Type</th><th>Status</th><th>Interval</th><th>Næste besøg</th><th>Opgaver</th><th>Spærrede dage</th><th>Pris ex. moms</th><th>Inkl. moms</th><th>Års-omsætning</th><th>Handlinger</th></tr></thead>
           <tbody id="customer-tbody"></tbody>
         </table>
       </div>
@@ -1185,14 +1185,7 @@ tr:hover td{background:#f7fbff;}
         <div class="form-group"><label>Type</label><select id="f-type"><option>Privat</option><option>Erhverv</option></select></div>
         <div class="form-group"><label>Status</label><select id="f-status"><option>Aktiv</option><option>Ny</option><option>Inaktiv</option></select></div>
         <div class="form-group full"><label>Tags</label>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;" id="f-tags-wrap">
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.8rem;"><input type="checkbox" value="VIP" id="tag-vip" style="accent-color:#854d0e"> <span class="customer-tag tag-vip">⭐ VIP</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.8rem;"><input type="checkbox" value="Ny kunde" id="tag-nykunde" style="accent-color:#1d4ed8"> <span class="customer-tag tag-nykunde">🆕 Ny kunde</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.8rem;"><input type="checkbox" value="Fast" id="tag-fast" style="accent-color:#16a34a"> <span class="customer-tag tag-fast">🔒 Fast</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.8rem;"><input type="checkbox" value="Prioritet" id="tag-prioritet" style="accent-color:#7c3aed"> <span class="customer-tag tag-prioritet">🎯 Prioritet</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.8rem;"><input type="checkbox" value="Sæson" id="tag-sæson" style="accent-color:#c2410c"> <span class="customer-tag tag-sæson">🍂 Sæson</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.8rem;"><input type="checkbox" value="Problem" id="tag-problem" style="accent-color:#dc2626"> <span class="customer-tag tag-problem">⚠️ Problem</span></label>
-          </div>
+
         </div>
         <div class="form-group full" id="f-price-wrap">
           <div id="f-price-manual-wrap">
@@ -1205,7 +1198,8 @@ tr:hover td{background:#f7fbff;}
             <div style="font-size:0.85rem;">Ex. moms: <strong id="f-price-auto">0 kr.</strong> &nbsp;·&nbsp; Inkl. moms: <strong id="f-price-incl-auto">0 kr.</strong></div>
           </div>
         </div>
-        <div class="form-group"><label>Standard frekvens</label><select id="f-freq"><option>Månedlig</option><option>Hver 2. måned</option><option>Kvartalsvis</option><option>Halvårlig</option><option>Årlig</option></select></div>
+        <div class="form-group"><label>Første besøgsdag</label><input id="f-firstVisit" type="date" placeholder=""></div>
+        <div class="form-group"><label>Standard frekvens</label><select id="f-freq"><option>Ugentlig</option><option>Hver 14. dag</option><option>Månedlig</option><option>Hver 2. måned</option><option>Kvartalsvis</option><option>Halvårlig</option><option>Årlig</option></select></div>
         <div class="form-group full"><label>Noter (til medarbejder)</label><textarea id="f-notes" placeholder="Eks: Ring på dørklokken · Hund i haven · Parkér ved siden af indkørslen..."></textarea></div>
         <!-- Day suggestion box -->
         <div class="form-group full" id="zip-suggestion-wrap" style="display:none;">
@@ -1455,6 +1449,7 @@ tr:hover td{background:#f7fbff;}
       <div class="form-group"><label>CVR-nummer</label><input id="pc-cvr" placeholder="12345678" maxlength="8"></div>
       <div class="form-group"><label>EAN-nummer</label><input id="pc-ean" placeholder="5790001234567" maxlength="13"></div>
       <div class="form-group full"><label>Faktura-adresse</label><input id="pc-addr" placeholder="Stationsvej 1, 2730 Herlev"></div>
+      <div class="form-group"><label>Postnummer</label><input id="pc-zip" placeholder="2730" maxlength="4"></div>
       <div class="form-group full"><label>Note</label><textarea id="pc-note" placeholder="Fx betalingsbetingelser, kontaktinfo..."></textarea></div>
     </div>
     <div style="margin:16px 0 8px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);">Tilknyt lokationer (underkunder)</div>
@@ -2045,8 +2040,8 @@ function renderCustomers(){
       <td>${tasks}</td>
       <td>${blocked}</td>
       ${isEmp
-        ?`<td colspan="2" style="color:var(--muted);font-style:italic;font-size:0.75rem;">–</td>`
-        :`<td style="font-weight:700;color:var(--blue)">${customerPrice(c).toLocaleString("da-DK")} kr.</td><td style="font-weight:600;color:var(--muted);font-size:0.78rem;">${Math.round(customerPrice(c)*1.25).toLocaleString('da-DK')} kr.</td>`
+        ?`<td colspan="3" style="color:var(--muted);font-style:italic;font-size:0.75rem;">–</td>`
+        :`<td style="font-weight:700;color:var(--blue)">${customerPrice(c).toLocaleString("da-DK")} kr.</td><td style="font-weight:600;color:var(--muted);font-size:0.78rem;">${Math.round(customerPrice(c)*1.25).toLocaleString('da-DK')} kr.</td><td style="font-weight:600;color:var(--green);font-size:0.78rem;">${Math.round(annualRev(c)).toLocaleString('da-DK')} kr./år</td>`
       }
       <td style="white-space:nowrap;">${isEmp?`
         <button class="btn btn-sm" style="background:#f0fdf4;color:#16a34a;" title="Start timer" onclick="openTimerModal(${c.id})"><i class="fa fa-stopwatch"></i> Timer</button>
@@ -2082,6 +2077,7 @@ function openModal(mode,id){
     ['vip','nykunde','fast','prioritet','sæson','problem'].forEach(t=>{const el=document.getElementById('tag-'+t);if(el)el.checked=(c.tags||[]).includes(el.value);});
     document.getElementById('f-freq').value=c.freq;
     document.getElementById('f-notes').value=c.notes;
+    document.getElementById('f-firstVisit').value=c.firstVisit||'';
     // Set manual price (shown if no tasks)
     const manualPriceEl=document.getElementById('f-price');
     if(manualPriceEl)manualPriceEl.value=c.tasks&&c.tasks.length?'':c.price||'';
@@ -2119,6 +2115,7 @@ function saveCustomer(){
     price:parseInt(document.getElementById('f-price').value)||0,
     freq:document.getElementById('f-freq').value,
     notes:document.getElementById('f-notes').value,
+    firstVisit:document.getElementById('f-firstVisit').value,
     prefTime:document.getElementById('f-prefTime').value,
     blockedDays:blocked,
     tasks:taskRowsData.map(t=>({...t,id:t.id||++nextId})),
@@ -3728,15 +3725,7 @@ const SUPA_URL = 'https://sohzgxxyaemndpodsthp.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvaHpneHh5YWVtbmRwb2RzdGhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MjE1MDIsImV4cCI6MjA5MzM5NzUwMn0.wH9RsQiCybP37hpJsNPQLNOVAEoPNKtIZDFu1X5dLYY';
 
 async function supaFetch(path, method='GET', body=null) {
-  const opts = {
-    method,
-    headers: {
-      'apikey': SUPA_KEY,
-      'Authorization': 'Bearer ' + SUPA_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': method === 'POST' ? 'return=representation' : ''
-    }
-  };
+  const opts = { method, headers: {'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':''} };
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(SUPA_URL + '/rest/v1/' + path, opts);
   if (!res.ok) { console.error('Supabase error:', await res.text()); return null; }
@@ -3748,13 +3737,9 @@ async function syncToSupabase() {
   try {
     const empOffDaysArr={};
     Object.entries(empOffDays).forEach(([k,v])=>{empOffDaysArr[k]=[...v];});
-    await supaFetch('crm_data?key=eq.main', 'DELETE');
-    await supaFetch('crm_data', 'POST', {
-      key: 'main',
-      data: JSON.stringify({customers,visits,route,deals,weekSchedule,visitStatuses,employees,invoiceCounter,firmSettings,tilbuds,facturas,customerGroups,parentCustomers,holidayDays,empOffDaysArr})
-    });
-    console.log('✓ Synkroniseret til Supabase');
-  } catch(e) { console.warn('Supabase sync fejl:', e); }
+    await supaFetch('crm_data?key=eq.main','DELETE');
+    await supaFetch('crm_data','POST',{key:'main',data:JSON.stringify({customers,visits,route,deals,weekSchedule,visitStatuses,employees,invoiceCounter,firmSettings,tilbuds,facturas,customerGroups,parentCustomers,holidayDays,empOffDaysArr})});
+  } catch(e) { console.warn('Supabase sync fejl:',e); }
 }
 
 async function loadFromSupabase() {
@@ -3776,14 +3761,10 @@ async function loadFromSupabase() {
       if(data.customerGroups)customerGroups=data.customerGroups;
       if(data.parentCustomers)parentCustomers=data.parentCustomers;
       if(data.holidayDays)Object.assign(holidayDays,data.holidayDays);
-      if(data.empOffDaysArr)Object.entries(data.empOffDaysArr).forEach(([k,v])=>{
-        const key=isNaN(k)?k:parseInt(k);
-        empOffDays[key]=new Set(v);
-      });
-      console.log('✓ Data indlæst fra Supabase');
+      if(data.empOffDaysArr)Object.entries(data.empOffDaysArr).forEach(([k,v])=>{empOffDays[isNaN(k)?k:parseInt(k)]=new Set(v);});
       return true;
     }
-  } catch(e) { console.warn('Supabase load fejl:', e); }
+  } catch(e) { console.warn('Supabase load fejl:',e); }
   return false;
 }
 
@@ -6092,11 +6073,6 @@ function checkBackupReminder(){
 
 // Warn before closing if unsaved changes
 let hasUnsavedChanges=false;
-const _origSaveToLS=saveToLocalStorage;
-function saveToLocalStorage(){
-  _origSaveToLS();
-  hasUnsavedChanges=false;
-}
 // Mark changes when data is modified
 ['customers','visits','weekSchedule','tilbuds','deals'].forEach(()=>{
   // We track via a simple flag set on any user interaction
@@ -6580,18 +6556,12 @@ function checkCustomerReminders(){
 // ── INIT ──
 document.getElementById('todayDate').textContent=new Date().toLocaleDateString('da-DK',{weekday:'short',day:'numeric',month:'short'});
 
-// Indlæs localStorage straks så login virker
 loadFromLocalStorage();
-
-// Prøv Supabase i baggrunden uden at blokere login
-(async () => {
-  try {
-    const loaded = await Promise.race([
-      loadFromSupabase(),
-      new Promise((_,reject) => setTimeout(() => reject(new Error('timeout')), 3000))
-    ]);
-    if (loaded) { addNotif('Cloud sync','Data indlæst fra skyen ☁️','success'); renderDashboard(); }
-  } catch(e) { console.log('Supabase ikke tilgængelig – kører offline'); }
+(async()=>{
+  try{
+    const ok=await Promise.race([loadFromSupabase(),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),3000))]);
+    if(ok){addNotif('Cloud sync','Data indlæst fra skyen ☁️','success');renderDashboard();}
+  }catch(e){console.log('Supabase offline');}
 })();
 
 setTimeout(()=>{checkNotifications();checkExpiringTilbuds();},1500);
