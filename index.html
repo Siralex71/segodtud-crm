@@ -1947,20 +1947,20 @@ function addTaskRow(t){
 function renderTaskRows(){
   document.getElementById('task-rows').innerHTML=taskRowsData.map((t,i)=>{
     const isOnDemand=t.freq==='Efter behov';
-    const activBtn=isOnDemand?`<button class="task-remove" title="${t.active?'Deaktiver':'Aktiver'} opgave" style="background:${t.active?'#dcfce7':'#fef9c3'};color:${t.active?'#16a34a':'#854d0e'};" onclick="taskRowsData[${i}].active=!taskRowsData[${i}].active;renderTaskRows();updateModalPrice()"><i class="fa ${t.active?'fa-circle-check':'fa-circle-play'}"></i></button>`:'<span></span>';
-    return `<div class="task-row" style="grid-template-columns:1fr 90px 140px 80px 36px 36px;">
-      <input value="${t.name||\'\'}" placeholder="Opgavebeskrivelse" oninput="taskRowsData[${i}].name=this.value">
-      <input type="number" value="${t.price||\'\'}" placeholder="0" oninput="taskRowsData[${i}].price=+this.value;updateModalPrice()">
-      <select onchange="taskRowsData[${i}].freq=this.value">
-        ${['Ugentlig','Hver 14. dag','Månedlig','Hver 2. måned','Kvartalsvis','Halvårlig','Årlig','Efter behov'].map(f=>`<option${t.freq===f?' selected':''}>${f}</option>`).join('')}
-      </select>
-      <input type="number" value="${t.duration||30}" min="5" step="5" placeholder="30" oninput="taskRowsData[${i}].duration=+this.value" title="Minutter">
-      ${activBtn}
-      <button class="task-remove" onclick="removeTaskRow(${i})"><i class="fa fa-xmark"></i></button>
-    </div>`;
+    let activBtn='';
+    if(isOnDemand){activBtn=t.active?'<button class="task-remove" style="background:#dcfce7;color:#16a34a" onclick="taskRowsData['+i+'].active=false;renderTaskRows();updateModalPrice()"><i class="fa fa-circle-check"></i></button>':'<button class="task-remove" style="background:#fef9c3;color:#854d0e" onclick="taskRowsData['+i+'].active=true;renderTaskRows();updateModalPrice()"><i class="fa fa-circle-play"></i></button>';}
+    const nameVal=(t.name||'').replace(/"/g,'&quot;');
+    return '<div class="task-row" style="grid-template-columns:1fr 90px 140px 80px 36px 36px;">'
+      +'<input value="'+nameVal+'" placeholder="Opgavebeskrivelse" oninput="taskRowsData['+i+'].name=this.value">'
+      +'<input type="number" value="'+(t.price||'')+'" placeholder="0" oninput="taskRowsData['+i+'].price=+this.value;updateModalPrice()">'
+      +'<select onchange="taskRowsData['+i+'].freq=this.value">'
+      +['Ugentlig','Hver 14. dag','Månedlig','Hver 2. måned','Kvartalsvis','Halvårlig','Årlig','Efter behov'].map(f=>'<option'+(t.freq===f?' selected':'')+'>'+f+'</option>').join('')
+      +'</select>'
+      +'<input type="number" value="'+(t.duration||30)+'" min="5" step="5" placeholder="30" oninput="taskRowsData['+i+'].duration=+this.value" title="Minutter">'
+      +activBtn
+      +'<button class="task-remove" onclick="removeTaskRow('+i+')"><i class="fa fa-xmark"></i></button>'
+      +'</div>';
   }).join('');
-  const hasTasks=taskRowsData.length>0;
-  // Toggle which price display is shown
   const manualWrap=document.getElementById('f-price-manual-wrap');
   const autoWrap=document.getElementById('f-price-auto-wrap');
   if(manualWrap)manualWrap.style.display=hasTasks?'none':'block';
