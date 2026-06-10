@@ -29,7 +29,7 @@ body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#e8f4fd 
 .badge{background:var(--blue);color:#fff;border-radius:20px;padding:4px 12px;font-size:0.72rem;font-weight:600;}
 .avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1a73c8,#5aaff0);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.85rem;}
 .content{padding:28px;flex:1;}
-.view{display:none;}.view.active{display:block;}
+.view{display:none;}.view.active{display:block;clear:both;}
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
 .stat-card{background:var(--white);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border:1px solid var(--border);position:relative;overflow:hidden;transition:transform 0.18s;}
 .stat-card:hover{transform:translateY(-2px);}
@@ -721,7 +721,7 @@ tr:hover td{background:#f7fbff;}
     </div>
 
     <!-- DASHBOARD -->
-    <div class="view active" id="view-dashboard">
+    <div class="view" id="view-dashboard">
       <div class="stats-grid">
         <div class="stat-card blue" id="stat-card-actual-rev"><div class="stat-label">Faktisk omsætning</div><div class="stat-value" id="stat-actual-rev">0</div><div class="stat-sub" id="stat-actual-rev-sub">kr. ex. moms – alle besøg</div><i class="fa fa-coins stat-icon"></i></div>
         <div class="stat-card green" id="stat-card-annual"><div class="stat-label">Forventet årsomsætning</div><div class="stat-value" id="stat-annual-rev">0</div><div class="stat-sub" id="stat-annual-rev-sub">kr. ex. moms – baseret på aftaler</div><i class="fa fa-chart-line stat-icon"></i></div>
@@ -763,7 +763,7 @@ tr:hover td{background:#f7fbff;}
           </select>
         </div>
         <table>
-          <thead><tr><th>Navn</th><th>Adresse</th><th>Telefon</th><th>Type</th><th>Status</th><th>Interval</th><th>Næste besøg</th><th>Opgaver</th><th>Spærrede dage</th><th>Pris ex. moms</th><th>Inkl. moms</th><th>Års-omsætning</th><th>Handlinger</th></tr></thead>
+          <thead><tr><th>Navn</th><th>Adresse</th><th>Telefon</th><th>Type</th><th>Status</th><th>Interval</th><th>Næste besøg</th><th>Pris ex. moms</th><th>Års-omsætning</th><th>Handlinger</th></tr></thead>
           <tbody id="customer-tbody"></tbody>
         </table>
       </div>
@@ -2042,11 +2042,9 @@ function renderCustomers(){
       <td>${statusTag(c.status)}${(c.tags||[]).map(t=>{const cls={VIP:'tag-vip','Ny kunde':'tag-nykunde',Fast:'tag-fast',Prioritet:'tag-prioritet',Sæson:'tag-sæson',Problem:'tag-problem'};return`<span class="customer-tag ${cls[t]||'tag-grey'}" style="margin-left:3px">${t}</span>`;}).join('')}${c.udstyr&&c.udstyr.length?`<span style="margin-left:4px;" title="Udstyr: ${c.udstyr.join(', ')}">${udstyrIcons(c.udstyr)}</span>`:''}</td>
       <td><span class="tag tag-grey">${c.freq}</span></td>
       <td><span class="${vs.cls}">${vs.label}</span></td>
-      <td>${tasks}</td>
-      <td>${blocked}</td>
       ${isEmp
         ?`<td colspan="3" style="color:var(--muted);font-style:italic;font-size:0.75rem;">–</td>`
-        :`<td style="font-weight:700;color:var(--blue)">${customerPrice(c).toLocaleString("da-DK")} kr.</td><td style="font-weight:600;color:var(--muted);font-size:0.78rem;">${Math.round(customerPrice(c)*1.25).toLocaleString('da-DK')} kr.</td><td style="font-weight:600;color:var(--green);font-size:0.78rem;">${Math.round(annualRev(c)).toLocaleString('da-DK')} kr./år</td>`
+        :`<td style="font-weight:700;color:var(--blue)">${customerPrice(c).toLocaleString("da-DK")} kr.</td><td style="font-weight:600;color:var(--green);font-size:0.78rem;">${Math.round(annualRev(c)).toLocaleString('da-DK')} kr./år</td>`
       }
       <td style="white-space:nowrap;">${isEmp?`
         <button class="btn btn-sm" style="background:#f0fdf4;color:#16a34a;" title="Start timer" onclick="openTimerModal(${c.id})"><i class="fa fa-stopwatch"></i> Timer</button>
@@ -2098,7 +2096,7 @@ function openModal(mode,id){
     // Clear suggestion
     document.getElementById('zip-suggestion-wrap').style.display='none';
     document.getElementById('f-zip').dataset.suggestedDow='';
-    // Default type = Erhverv
+    // Standard kundetype = Erhverv
     document.getElementById('f-type').value='Erhverv';
   }
   renderTaskRows();
@@ -6569,7 +6567,7 @@ loadFromLocalStorage();
     const ok=await Promise.race([loadFromSupabase(),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),3000))]);
     if(ok){addNotif('Cloud sync','Data indlæst fra skyen ☁️','success');}
   }catch(e){console.log('Supabase offline');}
-  // Altid start på dashboard efter load (uanset om Supabase svarede eller ej)
+  // Altid start på dashboard efter al dataindlæsning
   showView('dashboard', document.querySelector('.nav-item[onclick*=dashboard]'));
   renderDashboard();
 })();
