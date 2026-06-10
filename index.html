@@ -2036,7 +2036,7 @@ function renderCustomers(){
     const blocked=c.blockedDays&&c.blockedDays.length?c.blockedDays.map(d=>`<span class="blocked-badge">${['Ma','Ti','On','To','Fr'][d]}</span>`).join(' '):'–';
     const tasks=c.tasks&&c.tasks.length?c.tasks.map(t=>`<div style="margin-bottom:2px;"><span class="tag tag-purple" style="font-size:0.7rem;padding:2px 6px;">${t.name||'Opgave'}</span> <span style="font-size:0.68rem;color:var(--muted);">${(t.price||0).toLocaleString('da-DK')} kr.</span></div>`).join(''):'–';
     return`<tr>
-      <td><div class="customer-name">${c.first} ${c.last}${(()=>{const par=parentCustomers.find(p=>(p.childIds||[]).includes(c.id));return par?`<span style="background:#e8f4fd;color:var(--blue);border-radius:5px;padding:1px 6px;font-size:0.6rem;font-weight:700;margin-left:5px;"><i class="fa fa-building"></i> ${par.company}</span>`:'';})()}</div><div class="customer-addr">${c.email}</div></td>
+      <td style="cursor:pointer;" onclick="openKundekort(${c.id})"><div class="customer-name" style="color:var(--blue);">${c.first} ${c.last}${(()=>{const par=parentCustomers.find(p=>(p.childIds||[]).includes(c.id));return par?`<span style="background:#e8f4fd;color:var(--blue);border-radius:5px;padding:1px 6px;font-size:0.6rem;font-weight:700;margin-left:5px;"><i class="fa fa-building"></i> ${par.company}</span>`:'';})()}</div><div class="customer-addr">${c.email}</div></td>
       <td>${c.addr}<br><span style="font-size:0.72rem;color:var(--muted)">Postnr: ${c.zip||'–'}</span></td>
       <td>${c.phone}</td><td>${typeTag(c.type)}</td>
       <td>${statusTag(c.status)}${(c.tags||[]).map(t=>{const cls={VIP:'tag-vip','Ny kunde':'tag-nykunde',Fast:'tag-fast',Prioritet:'tag-prioritet',Sæson:'tag-sæson',Problem:'tag-problem'};return`<span class="customer-tag ${cls[t]||'tag-grey'}" style="margin-left:3px">${t}</span>`;}).join('')}${c.udstyr&&c.udstyr.length?`<span style="margin-left:4px;" title="Udstyr: ${c.udstyr.join(', ')}">${udstyrIcons(c.udstyr)}</span>`:''}</td>
@@ -6599,5 +6599,74 @@ setTimeout(saveToLocalStorage,2000);
 setTimeout(checkCustomerReminders,2000);
 
 </script>
+
+<!-- KUNDEKORT POPUP -->
+<div class="modal-bg" id="modal-kundekort" onclick="if(event.target===this)closeModal('modal-kundekort')">
+  <div class="modal" style="max-width:620px;width:95%;max-height:90vh;overflow-y:auto;padding:0;border-radius:16px;">
+    <!-- Header -->
+    <div id="kk-header" style="background:linear-gradient(135deg,var(--blue),#1e40af);color:#fff;padding:24px 28px 20px;border-radius:16px 16px 0 0;position:relative;">
+      <button onclick="closeModal('modal-kundekort')" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:50%;width:32px;height:32px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div id="kk-avatar" style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;flex-shrink:0;"></div>
+        <div>
+          <div id="kk-name" style="font-size:1.3rem;font-weight:700;"></div>
+          <div id="kk-addr" style="font-size:0.82rem;opacity:0.85;margin-top:2px;"></div>
+          <div id="kk-badges" style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Body -->
+    <div style="padding:20px 28px 24px;display:flex;flex-direction:column;gap:16px;">
+
+      <!-- Kontakt & info -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="background:#f7fafd;border-radius:10px;padding:12px 14px;">
+          <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">📞 Kontakt</div>
+          <div id="kk-phone" style="font-size:0.9rem;font-weight:600;color:var(--text);"></div>
+          <div id="kk-email" style="font-size:0.78rem;color:var(--muted);margin-top:2px;"></div>
+        </div>
+        <div style="background:#f7fafd;border-radius:10px;padding:12px 14px;">
+          <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">📅 Besøg</div>
+          <div id="kk-freq" style="font-size:0.9rem;font-weight:600;color:var(--text);"></div>
+          <div id="kk-next" style="font-size:0.78rem;color:var(--muted);margin-top:2px;"></div>
+        </div>
+        <div style="background:#f0fdf4;border-radius:10px;padding:12px 14px;">
+          <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">💰 Pris</div>
+          <div id="kk-price" style="font-size:0.9rem;font-weight:700;color:var(--green);"></div>
+          <div id="kk-price-incl" style="font-size:0.78rem;color:var(--muted);margin-top:2px;"></div>
+        </div>
+        <div style="background:#fff7ed;border-radius:10px;padding:12px 14px;">
+          <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">📆 Årsindtægt</div>
+          <div id="kk-annual" style="font-size:0.9rem;font-weight:700;color:var(--orange);"></div>
+          <div id="kk-lastvisit" style="font-size:0.78rem;color:var(--muted);margin-top:2px;"></div>
+        </div>
+      </div>
+
+      <!-- Opgaver -->
+      <div id="kk-tasks-wrap">
+        <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;">🔧 Opgaver</div>
+        <div id="kk-tasks" style="display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+
+      <!-- Spærrede dage -->
+      <div id="kk-blocked-wrap">
+        <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;">🚫 Spærrede dage</div>
+        <div id="kk-blocked" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      </div>
+
+      <!-- Noter -->
+      <div id="kk-notes-wrap">
+        <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">📝 Noter</div>
+        <div id="kk-notes" style="font-size:0.85rem;color:var(--text);background:#f7fafd;border-radius:8px;padding:10px 14px;line-height:1.5;"></div>
+      </div>
+
+      <!-- Knapper -->
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn btn-outline" style="flex:1;" onclick="closeModal('modal-kundekort')"><i class="fa fa-xmark"></i> Luk</button>
+        <button class="btn btn-primary" style="flex:1;" id="kk-edit-btn"><i class="fa fa-pen"></i> Rediger kunde</button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
