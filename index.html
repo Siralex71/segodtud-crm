@@ -1185,8 +1185,12 @@ tr:hover td{background:#f7fbff;}
       <div class="form-group full" id="f-price-wrap">
         <div id="f-price-manual-wrap" style="display:none;"><input id="f-price" type="number" value="0" style="display:none;"></div>
         <div id="f-price-auto-wrap" style="background:#f0f7ff;border-radius:8px;padding:10px 14px;border:1px solid var(--blue-light);">
-          <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;"><i class="fa fa-coins" style="color:var(--blue)"></i> Samlet pris fra opgaver</div>
-          <div style="font-size:0.85rem;">Ex. moms: <strong id="f-price-auto">0 kr.</strong> &nbsp;·&nbsp; Inkl. moms: <strong id="f-price-incl-auto">0 kr.</strong></div>
+          <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;"><i class="fa fa-coins" style="color:var(--blue)"></i> Økonomi overblik</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+            <div><div style="font-size:0.65rem;color:var(--muted);margin-bottom:2px;">Pr. besøg ex. moms</div><div style="font-weight:700;color:var(--blue);font-size:0.9rem;" id="f-price-auto">0 kr.</div></div>
+            <div><div style="font-size:0.65rem;color:var(--muted);margin-bottom:2px;">Pr. besøg inkl. moms</div><div style="font-weight:700;color:var(--blue);font-size:0.9rem;" id="f-price-incl-auto">0 kr.</div></div>
+            <div><div style="font-size:0.65rem;color:var(--muted);margin-bottom:2px;">Årsomsætning</div><div style="font-weight:700;color:var(--green);font-size:0.9rem;" id="f-price-annual">0 kr.</div></div>
+          </div>
         </div>
         <span id="f-price-incl" style="display:none;"></span>
       </div>
@@ -1999,6 +2003,15 @@ function updateModalPrice(){
   const elIncl=document.getElementById('f-price-incl-auto');
   if(el)el.textContent=total.toLocaleString('da-DK')+' kr.';
   if(elIncl)elIncl.textContent=Math.round(total*1.25).toLocaleString('da-DK')+' kr.';
+  // Beregn årsomsætning fra opgavernes frekvens
+  const annualEl=document.getElementById('f-price-annual');
+  if(annualEl){
+    const annual=taskRowsData.reduce((s,t)=>{
+      if(t.freq==='Efter behov'&&!t.active)return s;
+      return s+(t.price||0)*(freqPerYear[t.freq]||12);
+    },0);
+    annualEl.textContent=Math.round(annual).toLocaleString('da-DK')+' kr.';
+  }
   const manualVal=parseInt(document.getElementById('f-price')?.value)||0;
   const inclEl=document.getElementById('f-price-incl');
   if(inclEl)inclEl.textContent=manualVal?(manualVal*1.25).toLocaleString('da-DK')+' kr.':'– kr.';
