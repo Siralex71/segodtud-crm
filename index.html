@@ -1168,8 +1168,7 @@ tr:hover td{background:#f7fbff;}
     <h3 id="modal-title">Tilføj ny kunde</h3>
     <!-- ALT PÅ ÉN SIDE -->
     <div class="form-grid">
-      <div class="form-group"><label>Fornavn</label><input id="f-first" placeholder="Jens"></div>
-      <div class="form-group"><label>Efternavn</label><input id="f-last" placeholder="Jensen"></div>
+      <div class="form-group full"><label>Navn</label><input id="f-first" placeholder="Jens Jensen eller Mærsk A/S"><input id="f-last" style="display:none;" value=""></div>
       <div class="form-group full"><label>Adresse</label><input id="f-addr" placeholder="Vestergade 12, 8000 Aarhus"></div>
       <div class="form-group"><label>Postnummer</label><input id="f-zip" placeholder="8000" maxlength="4" oninput="suggestDayByZip()"></div>
       <div class="form-group"><label>Telefon</label><input id="f-phone" placeholder="20 12 34 56"></div>
@@ -2095,8 +2094,8 @@ function openModal(mode,id){
   // tabs fjernet - alt på én side nu
   if(mode==='edit'&&id){
     const c=customers.find(x=>x.id===id);
-    document.getElementById('f-first').value=c.first;
-    document.getElementById('f-last').value=c.last;
+    document.getElementById('f-first').value=(c.first+' '+(c.last||'')).trim();
+    document.getElementById('f-last').value='';
     document.getElementById('f-addr').value=c.addr;
     document.getElementById('f-zip').value=c.zip||'';
     document.getElementById('f-phone').value=c.phone;
@@ -2125,7 +2124,8 @@ function openModal(mode,id){
     const fEmp=document.getElementById('f-emp');
     if(fEmp){fEmp.innerHTML='<option value="">— Ingen —</option>'+employees.map(e=>'<option value="'+e.id+'"'+(c.empId===e.id?' selected':'')+'>'+e.first+' '+e.last+'</option>').join('');}
   }else{
-    ['f-first','f-last','f-addr','f-zip','f-phone','f-email','f-notes','f-prefTime'].forEach(x=>document.getElementById(x).value='');
+    ['f-first','f-addr','f-zip','f-phone','f-email','f-notes','f-prefTime'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('f-last').value='';
     for(let i=0;i<5;i++)document.getElementById('bd-'+i).checked=false;
     taskRowsData=[];
     renderUdstyrCheckboxes([]);
@@ -2150,8 +2150,8 @@ function saveCustomer(){
   for(let i=0;i<5;i++)if(document.getElementById('bd-'+i).checked)blocked.push(i);
   const c={
     id:editingId||++nextId,
-    first:document.getElementById('f-first').value,
-    last:document.getElementById('f-last').value,
+    first:(()=>{const n=document.getElementById('f-first').value.trim();const parts=n.split(' ');return parts.length>1?parts.slice(0,-1).join(' '):n;})(),
+    last:(()=>{const n=document.getElementById('f-first').value.trim();const parts=n.split(' ');return parts.length>1?parts[parts.length-1]:'';})(),
     addr:document.getElementById('f-addr').value,
     zip:document.getElementById('f-zip').value,
     phone:document.getElementById('f-phone').value,
@@ -2173,7 +2173,7 @@ function saveCustomer(){
   c.price=c.tasks.length
     ?c.tasks.reduce((s,t)=>s+(t.price||0),0)
     :parseInt(document.getElementById('f-price').value)||0;
-  if(!c.first||!c.addr){toast('Udfyld venligst navn og adresse');return;}
+  if(!document.getElementById('f-first').value.trim()||!c.addr){toast('Udfyld venligst navn og adresse');return;}
   // Gem hovedkunde tilknytning
   const selParent=parseInt(document.getElementById('f-parent')?.value)||null;
   parentCustomers.forEach(p=>{p.childIds=(p.childIds||[]).filter(x=>x!==c.id);});
