@@ -6659,7 +6659,47 @@ function openKundekort(id) {
   }
 
   document.getElementById('kk-edit-btn').onclick = function() { closeModal('modal-kundekort'); editCustomer(id); };
+
+  // Gem nuværende kunde id på modal
+  document.getElementById('modal-kundekort').dataset.cid = id;
+
+  // Udfyld hovedkunde dropdown
+  const parentSel = document.getElementById('kk-parent');
+  parentSel.innerHTML = '<option value="">— Ingen —</option>'
+    + parentCustomers.map(p => '<option value="'+p.id+'"'+(( (p.childIds||[]).includes(id) )?' selected':'')+'>'+p.company+'</option>').join('');
+
+  // Udfyld medarbejder dropdown
+  const empSel = document.getElementById('kk-emp');
+  const cust = customers.find(x=>x.id===id);
+  empSel.innerHTML = '<option value="">— Ingen —</option>'
+    + employees.map(e => '<option value="'+e.id+'"'+((cust&&cust.empId===e.id)?' selected':'')+'>'+e.name+'</option>').join('');
+
   document.getElementById('modal-kundekort').classList.add('open');
+}
+
+function kkAssignParent(parentId) {
+  const cid = parseInt(document.getElementById('modal-kundekort').dataset.cid);
+  // Remove from all parents first
+  parentCustomers.forEach(p => { p.childIds = (p.childIds||[]).filter(x=>x!==cid); });
+  // Add to selected parent
+  if (parentId) {
+    const p = parentCustomers.find(x=>x.id===parseInt(parentId));
+    if (p) { p.childIds = p.childIds||[]; p.childIds.push(cid); }
+  }
+  saveToLocalStorage();
+  renderCustomers();
+  toast('Hovedkunde opdateret ✓');
+}
+
+function kkAssignEmp(empId) {
+  const cid = parseInt(document.getElementById('modal-kundekort').dataset.cid);
+  const c = customers.find(x=>x.id===cid);
+  if (c) {
+    c.empId = empId ? parseInt(empId) : null;
+    saveToLocalStorage();
+    renderCustomers();
+    toast('Medarbejder opdateret ✓');
+  }
 }
 
 </script>
@@ -6722,6 +6762,22 @@ function openKundekort(id) {
       <div id="kk-notes-wrap">
         <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">📝 Noter</div>
         <div id="kk-notes" style="font-size:0.85rem;color:var(--text);background:#f7fafd;border-radius:8px;padding:10px 14px;line-height:1.5;"></div>
+      </div>
+
+      <!-- Tildeling -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">🏢 Hovedkunde</div>
+          <select id="kk-parent" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;" onchange="kkAssignParent(this.value)">
+            <option value="">— Ingen —</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">👷 Medarbejder</div>
+          <select id="kk-emp" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;" onchange="kkAssignEmp(this.value)">
+            <option value="">— Ingen —</option>
+          </select>
+        </div>
       </div>
 
       <!-- Knapper -->
