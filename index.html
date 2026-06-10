@@ -6562,6 +6562,18 @@ function checkCustomerReminders(){
 document.getElementById('todayDate').textContent=new Date().toLocaleDateString('da-DK',{weekday:'short',day:'numeric',month:'short'});
 
 loadFromLocalStorage();
+// Sørg for nextId altid er højere end alle eksisterende ID'er
+(function(){
+  const allIds=[
+    ...customers.map(x=>x.id||0),
+    ...visits.map(x=>x.id||0),
+    ...deals.map(x=>x.id||0),
+    ...tilbuds.map(x=>x.id||0),
+    ...employees.map(x=>x.id||0),
+    ...(facturas||[]).map(x=>x.id||0),
+  ];
+  if(allIds.length) nextId=Math.max(nextId,...allIds)+1;
+})();
 (async()=>{
   try{
     const ok=await Promise.race([loadFromSupabase(),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),3000))]);
