@@ -2080,8 +2080,7 @@ function renderCustomers(){
 function openModal(mode,id){
   editingId=id||null;
   document.getElementById('modal-title').textContent=mode==='edit'?'Rediger kunde':'Tilføj ny kunde';
-  // reset tabs
-  switchTab('tab-basic',document.querySelector('.modal-tab'));
+  // tabs fjernet - alt på én side nu
   if(mode==='edit'&&id){
     const c=customers.find(x=>x.id===id);
     document.getElementById('f-first').value=c.first;
