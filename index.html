@@ -1961,21 +1961,22 @@ function renderTaskRows(){
       +'<button class="task-remove" onclick="removeTaskRow('+i+')"><i class="fa fa-xmark"></i></button>'
       +'</div>';
   }).join('');
+}
+function updateModalPrice(){
+  const total=taskRowsData.reduce((s,t)=>s+(t.freq==='Efter behov'&&!t.active?0:(t.price||0)),0);
+  const hasTasks=taskRowsData.length>0;
   const manualWrap=document.getElementById('f-price-manual-wrap');
   const autoWrap=document.getElementById('f-price-auto-wrap');
   if(manualWrap)manualWrap.style.display=hasTasks?'none':'block';
   if(autoWrap)autoWrap.style.display=hasTasks?'block':'none';
-  // Update auto display
   const el=document.getElementById('f-price-auto');
   const elIncl=document.getElementById('f-price-incl-auto');
   if(el)el.textContent=total.toLocaleString('da-DK')+' kr.';
   if(elIncl)elIncl.textContent=Math.round(total*1.25).toLocaleString('da-DK')+' kr.';
-  // Update manual incl display
   const manualVal=parseInt(document.getElementById('f-price')?.value)||0;
   const inclEl=document.getElementById('f-price-incl');
   if(inclEl)inclEl.textContent=manualVal?(manualVal*1.25).toLocaleString('da-DK')+' kr.':'– kr.';
 }
-function removeTaskRow(i){taskRowsData.splice(i,1);renderTaskRows();}
 
 // ── 🧰 UDSTYR ──
 const DEFAULT_UDSTYR=['Lille stige','Pind','Ekstra klude','Kniv til afrens'];
