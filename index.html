@@ -1740,9 +1740,9 @@ let invLines=[{desc:'Vinduespudsning',qty:1,price:0}];
 
 // ── INTERVAL HELPERS ──
 const freqDays={'Ugentlig':7,'Hver 14. dag':14,'Månedlig':30,'Hver 2. måned':60,'Kvartalsvis':90,'Halvårlig':180,'Årlig':365};
-const freqPerYear={'Ugentlig':52,'Hver 14. dag':26,'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1};
+const freqPerYear={'Ugentlig':52,'Hver 14. dag':26,'Månedlig':12,'Hver 2. måned':6,'Kvartalsvis':4,'Halvårlig':2,'Årlig':1,'Efter behov':0};
 function annualRev(c){
-  if(c.tasks&&c.tasks.length)return c.tasks.reduce((s,t)=>s+t.price*(freqPerYear[t.freq]||freqPerYear[c.freq]||12),0);
+  if(c.tasks&&c.tasks.length)return c.tasks.reduce((s,t)=>s+(t.freq==='Efter behov'&&!t.active?0:t.price*(freqPerYear[t.freq]||freqPerYear[c.freq]||12)),0);
   return customerPrice(c)*(freqPerYear[c.freq]||12);
 }
 const dayNames=['Mandag','Tirsdag','Onsdag','Torsdag','Fredag'];
@@ -1778,7 +1778,7 @@ function customerDuration(c){
 // Price = sum of all task prices (or fallback to stored price if no tasks)
 function customerPrice(c){
   if(!c)return 0;
-  if(c.tasks&&c.tasks.length)return c.tasks.reduce((s,t)=>s+(t.price||0),0);
+  if(c.tasks&&c.tasks.length)return c.tasks.reduce((s,t)=>s+(t.freq==='Efter behov'&&!t.active?0:(t.price||0)),0);
   return c.price||0;
 }
 function dayTotalMinutes(dateStr){
@@ -1946,19 +1946,19 @@ function addTaskRow(t){
 }
 function renderTaskRows(){
   document.getElementById('task-rows').innerHTML=taskRowsData.map((t,i)=>`
-    <div class="task-row" style="grid-template-columns:1fr 90px 120px 80px 36px;">
+    <div class="task-row" style="grid-template-columns:1fr 90px 140px 80px 36px 36px;">
       <input value="${t.name||''}" placeholder="Opgavebeskrivelse" oninput="taskRowsData[${i}].name=this.value">
       <input type="number" value="${t.price||''}" placeholder="0" oninput="taskRowsData[${i}].price=+this.value;updateModalPrice()">
       <select onchange="taskRowsData[${i}].freq=this.value">
-        ${['Månedlig','Hver 2. måned','Kvartalsvis','Halvårlig','Årlig'].map(f=>`<option${t.freq===f?' selected':''}>${f}</option>`).join('')}
+        ${['Ugentlig','Hver 14. dag','Månedlig','Hver 2. måned','Kvartalsvis','Halvårlig','Årlig','Efter behov'].map(f=>`<option${t.freq===f?' selected':''}>${f}</option>`).join('')}
       </select>
       <input type="number" value="${t.duration||30}" min="5" step="5" placeholder="30" oninput="taskRowsData[${i}].duration=+this.value" title="Minutter">
+      <button class="task-remove" title="${t.freq==='Efter behov'?(t.active?'Deaktivér opgave':'Aktivér opgave'):''}" style="${t.freq==='Efter behov'?(t.active?'background:#dcfce7;color:#16a34a;':'background:#fef9c3;color:#854d0e;'):'display:none'}" onclick="taskRowsData[${i}].active=!taskRowsData[${i}].active;renderTaskRows();updateModalPrice()"><i class="fa ${t.freq==='Efter behov'?(t.active?'fa-circle-check':'fa-circle-play'):'fa-circle-play'}"></i></button>
       <button class="task-remove" onclick="removeTaskRow(${i})"><i class="fa fa-xmark"></i></button>
-    </div>`).join('');
   updateModalPrice();
 }
 function updateModalPrice(){
-  const total=taskRowsData.reduce((s,t)=>s+(t.price||0),0);
+  const total=taskRowsData.reduce((s,t)=>s+(t.freq==='Efter behov'&&!t.active?0:(t.price||0)),0);
   const hasTasks=taskRowsData.length>0;
   // Toggle which price display is shown
   const manualWrap=document.getElementById('f-price-manual-wrap');
