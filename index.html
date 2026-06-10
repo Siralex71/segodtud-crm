@@ -2351,7 +2351,8 @@ function renderWeek(){
     const date=new Date(monday);date.setDate(date.getDate()+i);
     const dateStr=date.toISOString().slice(0,10);
     const isToday=date.getTime()===today.getTime();
-    const entries=(weekSchedule[dateStr]||[]).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+    const allEntries=(weekSchedule[dateStr]||[]).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+    const entries=isEmpKal?allEntries.filter(e=>{const c=customers.find(x=>x.id===e.cid);return c&&c.empId===currentEmpId;}):allEntries;
     const totalMins=dayTotalMinutes(dateStr);
     const timeStr=totalMins>0?fmtDur(totalMins):'';
     const col=document.createElement('div');col.className='week-col';
@@ -2398,9 +2399,13 @@ function renderUnscheduledPool(){
   const poolWrap=document.getElementById('kal-pool-wrap');
   if(!poolEl)return;
 
+  // Filter til medarbejderens egne kunder
+  const isEmp=currentRole==='employee';
+  const myCustomers=isEmp&&currentEmpId?customers.filter(c=>c.empId===currentEmpId):customers;
+
   // A customer is "scheduled" if they appear ANYWHERE in weekSchedule (past or future)
   const scheduledCids=new Set(Object.values(weekSchedule).flat().map(e=>e.cid));
-  const activeCustomers=customers.filter(c=>c.status!=='Inaktiv');
+  const activeCustomers=myCustomers.filter(c=>c.status!=='Inaktiv');
   const unscheduled=activeCustomers.filter(c=>!scheduledCids.has(c.id));
 
   // Hide entire pool when all active customers are scheduled somewhere
@@ -3414,6 +3419,7 @@ function renderKalWeek(){
   const dates=kalGetWeekDates();
   const todayStr=new Date().toISOString().slice(0,10);
   const dayLabels=['Man','Tir','Ons','Tor','Fre'];
+  const isEmpKal=currentRole==='employee'&&currentEmpId;
 
   // Title
   const start=dates[0],end=dates[4];
