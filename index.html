@@ -1182,7 +1182,7 @@ tr:hover td{background:#f7fbff;}
         <div class="form-group"><label>Telefon</label><input id="f-phone" placeholder="20 12 34 56"></div>
         <div class="form-group"><label>Email</label><input id="f-email" placeholder="jens@mail.dk"></div>
         <div class="form-group"><label>Foretrukken ankomsttid</label><input id="f-prefTime" type="time" placeholder="08:00"></div>
-        <div class="form-group"><label>Type</label><select id="f-type"><option>Privat</option><option>Erhverv</option></select></div>
+        <div class="form-group"><label>Type</label><select id="f-type"><option>Privat</option><option selected>Erhverv</option></select></div>
         <div class="form-group"><label>Status</label><select id="f-status"><option>Aktiv</option><option>Ny</option><option>Inaktiv</option></select></div>
         <div class="form-group full"><label>Tags</label>
 
@@ -2034,7 +2034,7 @@ function renderCustomers(){
   document.getElementById('customer-tbody').innerHTML=list.map(c=>{
     const vs=visitStatus(c);
     const blocked=c.blockedDays&&c.blockedDays.length?c.blockedDays.map(d=>`<span class="blocked-badge">${['Ma','Ti','On','To','Fr'][d]}</span>`).join(' '):'–';
-    const tasks=c.tasks&&c.tasks.length?`<span class="tag tag-purple">${c.tasks.length} opgave${c.tasks.length>1?'r':''}</span>`:'–';
+    const tasks=c.tasks&&c.tasks.length?c.tasks.map(t=>`<div style="margin-bottom:2px;"><span class="tag tag-purple" style="font-size:0.7rem;padding:2px 6px;">${t.name||'Opgave'}</span> <span style="font-size:0.68rem;color:var(--muted);">${(t.price||0).toLocaleString('da-DK')} kr.</span></div>`).join(''):'–';
     return`<tr>
       <td><div class="customer-name">${c.first} ${c.last}${(()=>{const par=parentCustomers.find(p=>(p.childIds||[]).includes(c.id));return par?`<span style="background:#e8f4fd;color:var(--blue);border-radius:5px;padding:1px 6px;font-size:0.6rem;font-weight:700;margin-left:5px;"><i class="fa fa-building"></i> ${par.company}</span>`:'';})()}</div><div class="customer-addr">${c.email}</div></td>
       <td>${c.addr}<br><span style="font-size:0.72rem;color:var(--muted)">Postnr: ${c.zip||'–'}</span></td>
@@ -2098,6 +2098,8 @@ function openModal(mode,id){
     // Clear suggestion
     document.getElementById('zip-suggestion-wrap').style.display='none';
     document.getElementById('f-zip').dataset.suggestedDow='';
+    // Default type = Erhverv
+    document.getElementById('f-type').value='Erhverv';
   }
   renderTaskRows();
   document.getElementById('modal-customer').classList.add('open');
