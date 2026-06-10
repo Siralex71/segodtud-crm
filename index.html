@@ -1145,6 +1145,11 @@ tr:hover td{background:#f7fbff;}
           <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">Eksporter alle dine data til en sikkerhedskopi, eller importer fra en tidligere backup.</p>
           <button class="btn btn-primary" onclick="document.getElementById('modal-export').classList.add('open');updateExportInfo()"><i class="fa fa-database"></i> Eksport & Import</button>
         </div>
+        <div class="settings-section" style="margin-top:0;border:2px solid #fee2e2;border-radius:12px;padding:18px;">
+          <h3 style="color:var(--red);"><i class="fa fa-triangle-exclamation"></i> Ryd demo-data</h3>
+          <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">Sletter alle demo-kunder, demo-medarbejdere og eksempeldata — og gemmer tomt til skyen. Dine egne kunder og medarbejdere beholdes.</p>
+          <button class="btn btn-danger" onclick="rydDemoData()"><i class="fa fa-trash"></i> Ryd demo-data nu</button>
+        </div>
         <div class="settings-section" style="margin-top:0;">
           <h3><i class="fa fa-chart-bar"></i> Medarbejder-statistik</h3>
           <div id="emp-stats-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;"></div>
@@ -6768,6 +6773,28 @@ function kkAssignEmp(empId) {
     renderCustomers();
     toast('Medarbejder opdateret ✓');
   }
+}
+
+function rydDemoData() {
+  if (!confirm('Er du sikker? Dette sletter alle demo-kunder (id 1-4), demo-medarbejdere og eksempeldata fra både browser og sky.')) return;
+  
+  // Gem dine egne kunder (id > 20) og medarbejdere (id > 20)
+  customers = customers.filter(c => c.id > 20);
+  employees = employees.filter(e => e.id > 20);
+  visits = visits.filter(v => v.id > 20);
+  deals = deals.filter(d => d.id > 20);
+  route = route.filter(r => r > 20);
+  
+  // Ryd weekSchedule for demo-kunder
+  Object.keys(weekSchedule).forEach(date => {
+    weekSchedule[date] = (weekSchedule[date] || []).filter(e => e.cid > 20);
+  });
+
+  saveToLocalStorage();
+  renderDashboard();
+  renderCustomers();
+  toast('Demo-data ryddet ✓ — siden genindlæses om 2 sekunder');
+  setTimeout(() => location.reload(), 2000);
 }
 
 </script>
