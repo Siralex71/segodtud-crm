@@ -722,6 +722,8 @@ tr:hover td{background:#f7fbff;}
 
     <!-- DASHBOARD -->
     <div class="view" id="view-dashboard">
+      <!-- Medarbejder today stat -->
+      <div id="emp-today-stat" style="display:none;margin-bottom:20px;"></div>
       <div class="stats-grid">
         <div class="stat-card blue" id="stat-card-actual-rev"><div class="stat-label">Faktisk omsætning</div><div class="stat-value" id="stat-actual-rev">0</div><div class="stat-sub" id="stat-actual-rev-sub">kr. ex. moms – alle besøg</div><i class="fa fa-coins stat-icon"></i></div>
         <div class="stat-card green" id="stat-card-annual"><div class="stat-label">Forventet årsomsætning</div><div class="stat-value" id="stat-annual-rev">0</div><div class="stat-sub" id="stat-annual-rev-sub">kr. ex. moms – baseret på aftaler</div><i class="fa fa-chart-line stat-icon"></i></div>
@@ -1896,6 +1898,17 @@ function renderDashboard(){
     if(annCard)annCard.style.display='none';
     if(monCard)monCard.style.display='none';
     if(pipCard)pipCard.style.display='none';
+    // Vis antal dagens opgaver i en simpel stat
+    const today2=new Date().toISOString().slice(0,10);
+    const todayCount=(weekSchedule[today2]||[]).filter(e=>{const c=customers.find(x=>x.id===e.cid);return c&&c.empId===empId;}).length;
+    const empStatWrap=document.getElementById('emp-today-stat');
+    if(empStatWrap){
+      empStatWrap.style.display='flex';
+      empStatWrap.innerHTML=`<div style="background:linear-gradient(135deg,var(--blue),#1e40af);color:#fff;border-radius:14px;padding:18px 24px;display:flex;align-items:center;gap:16px;width:100%;">
+        <div style="font-size:2.5rem;font-weight:800;">${todayCount}</div>
+        <div><div style="font-size:1rem;font-weight:700;">Dagens opgaver</div><div style="font-size:0.8rem;opacity:0.85;">${new Date().toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long'})}</div></div>
+      </div>`;
+    }
   } else {
     // Chef view – show all revenue KPIs
     ['stat-card-actual-rev','stat-card-annual','stat-card-month','stat-card-pipeline'].forEach(id=>{
@@ -4316,7 +4329,7 @@ function applyRoleUI(){
   }
 
   // Hide/show nav items based on role
-  const empHiddenViews=['okonomi','fakturaer','tilbud','pipeline','invoice','zipmap','employees','ferie','indstillinger','grupper','hoofdkunder','arshjul'];
+  const empHiddenViews=['okonomi','fakturaer','tilbud','pipeline','invoice','zipmap','employees','ferie','indstillinger','grupper','hoofdkunder','arshjul','hovedkunder','history'];
   document.querySelectorAll('.nav-item').forEach(btn=>{
     const onclick=btn.getAttribute('onclick')||'';
     const isHidden=empHiddenViews.some(v=>onclick.includes("'"+v+"'"));
