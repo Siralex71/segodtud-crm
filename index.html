@@ -6567,8 +6567,11 @@ loadFromLocalStorage();
 (async()=>{
   try{
     const ok=await Promise.race([loadFromSupabase(),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),3000))]);
-    if(ok){addNotif('Cloud sync','Data indlæst fra skyen ☁️','success');renderDashboard();}
+    if(ok){addNotif('Cloud sync','Data indlæst fra skyen ☁️','success');}
   }catch(e){console.log('Supabase offline');}
+  // Altid start på dashboard efter load (uanset om Supabase svarede eller ej)
+  showView('dashboard', document.querySelector('.nav-item[onclick*=dashboard]'));
+  renderDashboard();
 })();
 
 setTimeout(()=>{checkNotifications();checkExpiringTilbuds();},1500);
@@ -6577,10 +6580,6 @@ setInterval(()=>{checkNotifications();checkExpiringTilbuds();},5*60*1000);
 // Initialize role system
 applyRoleUI();
 updateRoleCSS();
-
-// Sørg for dashboard er aktivt ved opstart
-showView('dashboard', document.querySelector('.nav-item[onclick*=dashboard]'));
-renderDashboard();
 setTimeout(saveToLocalStorage,2000);
 // Show daily briefing
 setTimeout(showBriefing,800);
