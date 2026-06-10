@@ -2154,6 +2154,7 @@ function openModal(mode,id){
     if(fEmpN){fEmpN.innerHTML='<option value="">— Ingen —</option>'+employees.map(e=>'<option value="'+e.id+'">'+e.name+'</option>').join('');}
   }
   renderTaskRows();
+  updateModalPrice();
   document.getElementById('modal-customer').classList.add('open');
 }
 function editCustomer(id){openModal('edit',id);}
