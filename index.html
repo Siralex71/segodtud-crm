@@ -2125,7 +2125,7 @@ function openModal(mode,id){
     if(fParent){fParent.innerHTML='<option value="">— Ingen —</option>'+parentCustomers.map(p=>'<option value="'+p.id+'"'+((p.childIds||[]).includes(c.id)?' selected':'')+'>'+p.company+'</option>').join('');}
     // Udfyld medarbejder dropdown
     const fEmp=document.getElementById('f-emp');
-    if(fEmp){fEmp.innerHTML='<option value="">— Ingen —</option>'+employees.map(e=>'<option value="'+e.id+'"'+(c.empId===e.id?' selected':'')+'>'+e.name+'</option>').join('');}
+    if(fEmp){fEmp.innerHTML='<option value="">— Ingen —</option>'+employees.map(e=>'<option value="'+e.id+'"'+(c.empId===e.id?' selected':'')+'>'+e.first+' '+e.last+'</option>').join('');}
   }else{
     ['f-first','f-last','f-addr','f-zip','f-phone','f-email','f-notes','f-prefTime'].forEach(x=>document.getElementById(x).value='');
     for(let i=0;i<5;i++)document.getElementById('bd-'+i).checked=false;
@@ -6718,7 +6718,7 @@ function openKundekort(id) {
   const empSel = document.getElementById('kk-emp');
   const cust = customers.find(x=>x.id===id);
   empSel.innerHTML = '<option value="">— Ingen —</option>'
-    + employees.map(e => '<option value="'+e.id+'"'+((cust&&cust.empId===e.id)?' selected':'')+'>'+e.name+'</option>').join('');
+    + employees.map(e => '<option value="'+e.id+'"'+((cust&&cust.empId===e.id)?' selected':'')+'>'+e.first+' '+e.last+'</option>').join('');
 
   document.getElementById('modal-kundekort').classList.add('open');
 }
