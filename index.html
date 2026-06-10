@@ -1197,6 +1197,20 @@ tr:hover td{background:#f7fbff;}
       <!-- Noter -->
       <div class="form-group full"><label>Noter (til medarbejder)</label><textarea id="f-notes" placeholder="Eks: Ring på dørklokken · Hund i haven · Parkér ved siden af indkørslen..."></textarea></div>
 
+      <!-- Hovedkunde og Medarbejder -->
+      <div class="form-group">
+        <label>🏢 Hovedkunde</label>
+        <select id="f-parent" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;">
+          <option value="">— Ingen —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>👷 Medarbejder</label>
+        <select id="f-emp" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;">
+          <option value="">— Ingen —</option>
+        </select>
+      </div>
+
       <!-- Dag forslag -->
       <div class="form-group full" id="zip-suggestion-wrap" style="display:none;">
         <div id="zip-suggestion-box" style="background:linear-gradient(90deg,#e8f4fd,#f0f8ff);border:1.5px solid var(--blue-light);border-radius:10px;padding:14px 16px;">
@@ -2106,6 +2120,12 @@ function openModal(mode,id){
     if(blockedContent)blockedContent.style.display=(c.blockedDays&&c.blockedDays.length)?'block':'none';
     taskRowsData=(c.tasks||[]).map(t=>({...t}));
     renderUdstyrCheckboxes(c.udstyr||[]);
+    // Udfyld hovedkunde dropdown
+    const fParent=document.getElementById('f-parent');
+    if(fParent){fParent.innerHTML='<option value="">— Ingen —</option>'+parentCustomers.map(p=>'<option value="'+p.id+'"'+((p.childIds||[]).includes(c.id)?' selected':'')+'>'+p.company+'</option>').join('');}
+    // Udfyld medarbejder dropdown
+    const fEmp=document.getElementById('f-emp');
+    if(fEmp){fEmp.innerHTML='<option value="">— Ingen —</option>'+employees.map(e=>'<option value="'+e.id+'"'+(c.empId===e.id?' selected':'')+'>'+e.name+'</option>').join('');}
   }else{
     ['f-first','f-last','f-addr','f-zip','f-phone','f-email','f-notes','f-prefTime'].forEach(x=>document.getElementById(x).value='');
     for(let i=0;i<5;i++)document.getElementById('bd-'+i).checked=false;
@@ -2116,6 +2136,11 @@ function openModal(mode,id){
     document.getElementById('f-zip').dataset.suggestedDow='';
     // Standard kundetype = Erhverv
     document.getElementById('f-type').value='Erhverv';
+    // Udfyld dropdowns for ny kunde
+    const fParentN=document.getElementById('f-parent');
+    if(fParentN){fParentN.innerHTML='<option value="">— Ingen —</option>'+parentCustomers.map(p=>'<option value="'+p.id+'">'+p.company+'</option>').join('');}
+    const fEmpN=document.getElementById('f-emp');
+    if(fEmpN){fEmpN.innerHTML='<option value="">— Ingen —</option>'+employees.map(e=>'<option value="'+e.id+'">'+e.name+'</option>').join('');}
   }
   renderTaskRows();
   document.getElementById('modal-customer').classList.add('open');
@@ -2144,13 +2169,17 @@ function saveCustomer(){
     tasks:taskRowsData.map(t=>({...t,id:t.id||++nextId})),
     udstyr:getSelectedUdstyr(),
     tags:['vip','nykunde','fast','prioritet','sæson','problem'].filter(t=>document.getElementById('tag-'+t)?.checked).map(t=>document.getElementById('tag-'+t).value),
-    empId:editingId?customers.find(x=>x.id===editingId)?.empId:null,
+    empId:parseInt(document.getElementById('f-emp')?.value)||null,
   };
   // Price = sum of tasks if tasks exist, otherwise manual field
   c.price=c.tasks.length
     ?c.tasks.reduce((s,t)=>s+(t.price||0),0)
     :parseInt(document.getElementById('f-price').value)||0;
   if(!c.first||!c.addr){toast('Udfyld venligst navn og adresse');return;}
+  // Gem hovedkunde tilknytning
+  const selParent=parseInt(document.getElementById('f-parent')?.value)||null;
+  parentCustomers.forEach(p=>{p.childIds=(p.childIds||[]).filter(x=>x!==c.id);});
+  if(selParent){const p=parentCustomers.find(x=>x.id===selParent);if(p){p.childIds=p.childIds||[];p.childIds.push(c.id);}}
   if(editingId){customers[customers.findIndex(x=>x.id===editingId)]=c;toast('Kunde opdateret ✓');}
   else{customers.push(c);toast('Kunde tilføjet ✓');}
   closeModal('modal-customer');
