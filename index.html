@@ -6598,6 +6598,69 @@ setTimeout(saveToLocalStorage,2000);
 // Check customer reminders
 setTimeout(checkCustomerReminders,2000);
 
+function openKundekort(id) {
+  const c = customers.find(x => x.id === id);
+  if (!c) return;
+
+  document.getElementById('kk-avatar').textContent = (c.first[0]||'') + (c.last[0]||'');
+  document.getElementById('kk-name').textContent = c.first + ' ' + c.last;
+  document.getElementById('kk-addr').textContent = c.addr + (c.zip ? ', ' + c.zip : '');
+
+  let badges = '<span style="background:rgba(255,255,255,0.25);border-radius:20px;padding:2px 10px;font-size:0.7rem;font-weight:600;">'+c.type+'</span>';
+  badges += '<span style="background:rgba(255,255,255,0.25);border-radius:20px;padding:2px 10px;font-size:0.7rem;font-weight:600;">'+c.status+'</span>';
+  if (c.tags && c.tags.length) badges += c.tags.map(t => '<span style="background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 10px;font-size:0.7rem;">'+t+'</span>').join('');
+  document.getElementById('kk-badges').innerHTML = badges;
+
+  document.getElementById('kk-phone').textContent = c.phone || '-';
+  document.getElementById('kk-email').textContent = c.email || '-';
+  document.getElementById('kk-freq').textContent = c.freq || '-';
+
+  const next = getNextVisitDate(c);
+  document.getElementById('kk-next').textContent = next ? 'Naeste: ' + new Date(next).toLocaleDateString('da-DK', {day:'numeric',month:'short',year:'numeric'}) : 'Ikke planlagt';
+
+  const price = customerPrice(c);
+  document.getElementById('kk-price').textContent = price.toLocaleString('da-DK') + ' kr. ex. moms';
+  document.getElementById('kk-price-incl').textContent = Math.round(price * 1.25).toLocaleString('da-DK') + ' kr. inkl. moms';
+  document.getElementById('kk-annual').textContent = Math.round(annualRev(c)).toLocaleString('da-DK') + ' kr./aar';
+
+  const last = getLastVisit(c.id);
+  document.getElementById('kk-lastvisit').textContent = last ? 'Sidste besog: ' + new Date(last).toLocaleDateString('da-DK', {day:'numeric',month:'short',year:'numeric'}) : 'Ingen besog endnu';
+
+  const tasksWrap = document.getElementById('kk-tasks-wrap');
+  if (c.tasks && c.tasks.length) {
+    tasksWrap.style.display = 'block';
+    document.getElementById('kk-tasks').innerHTML = c.tasks.map(function(t) {
+      return '<div style="display:flex;justify-content:space-between;align-items:center;background:#f3e8ff;border-radius:8px;padding:8px 12px;margin-bottom:4px;">'
+        + '<div><span style="font-weight:600;font-size:0.85rem;color:#6d28d9;">'+(t.name||'Opgave')+'</span>'
+        + '<span style="font-size:0.75rem;color:var(--muted);margin-left:8px;">'+(t.freq||'')+'</span></div>'
+        + '<span style="font-weight:700;color:#6d28d9;font-size:0.85rem;">'+(t.price||0).toLocaleString('da-DK')+' kr.</span></div>';
+    }).join('');
+  } else {
+    tasksWrap.style.display = 'none';
+  }
+
+  const blockedWrap = document.getElementById('kk-blocked-wrap');
+  if (c.blockedDays && c.blockedDays.length) {
+    blockedWrap.style.display = 'block';
+    document.getElementById('kk-blocked').innerHTML = c.blockedDays.map(function(d) {
+      return '<span class="blocked-badge" style="font-size:0.82rem;padding:4px 12px;">'+['Mandag','Tirsdag','Onsdag','Torsdag','Fredag'][d]+'</span>';
+    }).join('');
+  } else {
+    blockedWrap.style.display = 'none';
+  }
+
+  const notesWrap = document.getElementById('kk-notes-wrap');
+  if (c.notes && c.notes.trim()) {
+    notesWrap.style.display = 'block';
+    document.getElementById('kk-notes').textContent = c.notes;
+  } else {
+    notesWrap.style.display = 'none';
+  }
+
+  document.getElementById('kk-edit-btn').onclick = function() { closeModal('modal-kundekort'); editCustomer(id); };
+  document.getElementById('modal-kundekort').classList.add('open');
+}
+
 </script>
 
 <!-- KUNDEKORT POPUP -->
