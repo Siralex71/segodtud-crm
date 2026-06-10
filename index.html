@@ -1182,16 +1182,14 @@ tr:hover td{background:#f7fbff;}
       <div class="form-group full"><label>Tags</label></div>
 
       <!-- Pris -->
+      <!-- Pris beregnet fra opgaver -->
       <div class="form-group full" id="f-price-wrap">
-        <div id="f-price-manual-wrap">
-          <label>Pris pr. gang (kr. <span style="color:var(--orange);font-weight:700">ex. moms</span>) – udfyldes kun hvis ingen opgaver</label>
-          <input id="f-price" type="number" placeholder="350" oninput="updateModalPrice()">
-          <small style="color:var(--muted);font-size:0.7rem;">Inkl. moms: <span id="f-price-incl">– kr.</span></small>
-        </div>
-        <div id="f-price-auto-wrap" style="display:none;background:#f0f7ff;border-radius:8px;padding:10px 14px;border:1px solid var(--blue-light);">
-          <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;"><i class="fa fa-coins" style="color:var(--blue)"></i> Pris beregnet fra opgaver</div>
+        <div id="f-price-manual-wrap" style="display:none;"><input id="f-price" type="number" value="0" style="display:none;"></div>
+        <div id="f-price-auto-wrap" style="background:#f0f7ff;border-radius:8px;padding:10px 14px;border:1px solid var(--blue-light);">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;"><i class="fa fa-coins" style="color:var(--blue)"></i> Samlet pris fra opgaver</div>
           <div style="font-size:0.85rem;">Ex. moms: <strong id="f-price-auto">0 kr.</strong> &nbsp;·&nbsp; Inkl. moms: <strong id="f-price-incl-auto">0 kr.</strong></div>
         </div>
+        <span id="f-price-incl" style="display:none;"></span>
       </div>
 
       <!-- Noter -->
