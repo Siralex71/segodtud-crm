@@ -1164,92 +1164,107 @@ tr:hover td{background:#f7fbff;}
 
 <!-- CUSTOMER MODAL (with tabs: Stamdata / Opgaver / Spærrede dage) -->
 <div class="modal-bg" id="modal-customer">
-  <div class="modal modal-wide">
+  <div class="modal modal-wide" style="max-height:92vh;overflow-y:auto;">
     <h3 id="modal-title">Tilføj ny kunde</h3>
-    <div class="modal-tabs">
-      <button class="modal-tab active" onclick="switchTab('tab-basic',this)">Stamdata</button>
-      <button class="modal-tab" onclick="switchTab('tab-tasks',this)">Opgaver</button>
-      <button class="modal-tab" onclick="switchTab('tab-udstyr',this)">🧰 Udstyr</button>
-      <button class="modal-tab" onclick="switchTab('tab-blocked',this)">Spærrede dage</button>
-    </div>
-    <!-- TAB: Stamdata -->
-    <div class="modal-tab-pane active" id="tab-basic">
-      <div class="form-grid">
-        <div class="form-group"><label>Fornavn</label><input id="f-first" placeholder="Jens"></div>
-        <div class="form-group"><label>Efternavn</label><input id="f-last" placeholder="Jensen"></div>
-        <div class="form-group full"><label>Adresse</label><input id="f-addr" placeholder="Vestergade 12, 8000 Aarhus"></div>
-        <div class="form-group"><label>Postnummer</label><input id="f-zip" placeholder="8000" maxlength="4" oninput="suggestDayByZip()"></div>
-        <div class="form-group"><label>Telefon</label><input id="f-phone" placeholder="20 12 34 56"></div>
-        <div class="form-group"><label>Email</label><input id="f-email" placeholder="jens@mail.dk"></div>
-        <div class="form-group"><label>Foretrukken ankomsttid</label><input id="f-prefTime" type="time" placeholder="08:00"></div>
-        <div class="form-group"><label>Type</label><select id="f-type"><option>Privat</option><option selected>Erhverv</option></select></div>
-        <div class="form-group"><label>Status</label><select id="f-status"><option>Aktiv</option><option>Ny</option><option>Inaktiv</option></select></div>
-        <div class="form-group full"><label>Tags</label>
+    <!-- ALT PÅ ÉN SIDE -->
+    <div class="form-grid">
+      <div class="form-group"><label>Fornavn</label><input id="f-first" placeholder="Jens"></div>
+      <div class="form-group"><label>Efternavn</label><input id="f-last" placeholder="Jensen"></div>
+      <div class="form-group full"><label>Adresse</label><input id="f-addr" placeholder="Vestergade 12, 8000 Aarhus"></div>
+      <div class="form-group"><label>Postnummer</label><input id="f-zip" placeholder="8000" maxlength="4" oninput="suggestDayByZip()"></div>
+      <div class="form-group"><label>Telefon</label><input id="f-phone" placeholder="20 12 34 56"></div>
+      <div class="form-group"><label>Email</label><input id="f-email" placeholder="jens@mail.dk"></div>
+      <div class="form-group"><label>Foretrukken ankomsttid</label><input id="f-prefTime" type="time" placeholder="08:00"></div>
+      <div class="form-group"><label>Type</label><select id="f-type"><option>Privat</option><option selected>Erhverv</option></select></div>
+      <div class="form-group"><label>Status</label><select id="f-status"><option>Aktiv</option><option>Ny</option><option>Inaktiv</option></select></div>
+      <div class="form-group"><label>Første besøgsdag</label><input id="f-firstVisit" type="date"></div>
+      <div class="form-group"><label>Standard frekvens</label><select id="f-freq"><option>Ugentlig</option><option>Hver 14. dag</option><option>Månedlig</option><option>Hver 2. måned</option><option>Kvartalsvis</option><option>Halvårlig</option><option>Årlig</option></select></div>
+      <div class="form-group full"><label>Tags</label></div>
 
+      <!-- Pris -->
+      <div class="form-group full" id="f-price-wrap">
+        <div id="f-price-manual-wrap">
+          <label>Pris pr. gang (kr. <span style="color:var(--orange);font-weight:700">ex. moms</span>) – udfyldes kun hvis ingen opgaver</label>
+          <input id="f-price" type="number" placeholder="350" oninput="updateModalPrice()">
+          <small style="color:var(--muted);font-size:0.7rem;">Inkl. moms: <span id="f-price-incl">– kr.</span></small>
         </div>
-        <div class="form-group full" id="f-price-wrap">
-          <div id="f-price-manual-wrap">
-            <label>Pris pr. gang (kr. <span style="color:var(--orange);font-weight:700">ex. moms</span>)</label>
-            <input id="f-price" type="number" placeholder="350" oninput="updateModalPrice()">
-            <small style="color:var(--muted);font-size:0.7rem;">Inkl. moms: <span id="f-price-incl">– kr.</span></small>
+        <div id="f-price-auto-wrap" style="display:none;background:#f0f7ff;border-radius:8px;padding:10px 14px;border:1px solid var(--blue-light);">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;"><i class="fa fa-coins" style="color:var(--blue)"></i> Pris beregnet fra opgaver</div>
+          <div style="font-size:0.85rem;">Ex. moms: <strong id="f-price-auto">0 kr.</strong> &nbsp;·&nbsp; Inkl. moms: <strong id="f-price-incl-auto">0 kr.</strong></div>
+        </div>
+      </div>
+
+      <!-- Noter -->
+      <div class="form-group full"><label>Noter (til medarbejder)</label><textarea id="f-notes" placeholder="Eks: Ring på dørklokken · Hund i haven · Parkér ved siden af indkørslen..."></textarea></div>
+
+      <!-- Dag forslag -->
+      <div class="form-group full" id="zip-suggestion-wrap" style="display:none;">
+        <div id="zip-suggestion-box" style="background:linear-gradient(90deg,#e8f4fd,#f0f8ff);border:1.5px solid var(--blue-light);border-radius:10px;padding:14px 16px;">
+          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin-bottom:10px;"><i class="fa fa-lightbulb"></i> Forslag til besøgsdag</div>
+          <div id="zip-suggestion-content"></div>
+        </div>
+      </div>
+
+      <!-- Spærrede dage som dropdown -->
+      <div class="form-group full">
+        <label style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="this.parentElement.querySelector('.blocked-content').style.display=this.parentElement.querySelector('.blocked-content').style.display==='none'?'block':'none'">
+          <span>🚫 Spærrede dage</span>
+          <i class="fa fa-chevron-down" style="font-size:0.75rem;color:var(--muted)"></i>
+        </label>
+        <div class="blocked-content" style="display:none;margin-top:10px;">
+          <div class="day-blocks">
+            <div class="day-block"><input type="checkbox" id="bd-0"><label for="bd-0">Man</label></div>
+            <div class="day-block"><input type="checkbox" id="bd-1"><label for="bd-1">Tir</label></div>
+            <div class="day-block"><input type="checkbox" id="bd-2"><label for="bd-2">Ons</label></div>
+            <div class="day-block"><input type="checkbox" id="bd-3"><label for="bd-3">Tor</label></div>
+            <div class="day-block"><input type="checkbox" id="bd-4"><label for="bd-4">Fre</label></div>
           </div>
-          <div id="f-price-auto-wrap" style="display:none;background:#f0f7ff;border-radius:8px;padding:10px 14px;border:1px solid var(--blue-light);">
-            <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;"><i class="fa fa-coins" style="color:var(--blue)"></i> Pris beregnet fra opgaver</div>
-            <div style="font-size:0.85rem;">Ex. moms: <strong id="f-price-auto">0 kr.</strong> &nbsp;·&nbsp; Inkl. moms: <strong id="f-price-incl-auto">0 kr.</strong></div>
+        </div>
+      </div>
+
+      <!-- Opgaver -->
+      <div class="form-group full">
+        <label style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="this.parentElement.querySelector('.tasks-content').style.display=this.parentElement.querySelector('.tasks-content').style.display==='none'?'block':'none'">
+          <span>🔧 Opgaver</span>
+          <i class="fa fa-chevron-down" style="font-size:0.75rem;color:var(--muted)"></i>
+        </label>
+        <div class="tasks-content" style="display:block;margin-top:10px;">
+          <div style="display:grid;grid-template-columns:1fr 90px 140px 80px 36px 36px;gap:8px;margin-bottom:8px;">
+            <span style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Opgave</span>
+            <span style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Pris ex.</span>
+            <span style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Frekvens</span>
+            <span style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Min</span>
+            <span></span><span></span>
+          </div>
+          <div id="task-rows"></div>
+          <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="addTaskRow()"><i class="fa fa-plus"></i> Tilføj opgave</button>
+        </div>
+      </div>
+
+      <!-- Udstyr -->
+      <div class="form-group full">
+        <label style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="this.parentElement.querySelector('.udstyr-content').style.display=this.parentElement.querySelector('.udstyr-content').style.display==='none'?'block':'none'">
+          <span>🧰 Udstyr</span>
+          <i class="fa fa-chevron-down" style="font-size:0.75rem;color:var(--muted)"></i>
+        </label>
+        <div class="udstyr-content" style="display:none;margin-top:10px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;" id="udstyr-checkboxes"></div>
+          <div style="border-top:1px solid var(--border);padding-top:14px;">
+            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;"><i class="fa fa-plus"></i> Tilføj eget udstyrspunkt</div>
+            <div style="display:flex;gap:8px;">
+              <input id="udstyr-custom-input" placeholder="fx Trappestige, Skraber..." style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;">
+              <button class="btn btn-primary btn-sm" onclick="addCustomUdstyr()"><i class="fa fa-plus"></i> Tilføj</button>
+            </div>
           </div>
         </div>
-        <div class="form-group"><label>Første besøgsdag</label><input id="f-firstVisit" type="date" placeholder=""></div>
-        <div class="form-group"><label>Standard frekvens</label><select id="f-freq"><option>Ugentlig</option><option>Hver 14. dag</option><option>Månedlig</option><option>Hver 2. måned</option><option>Kvartalsvis</option><option>Halvårlig</option><option>Årlig</option></select></div>
-        <div class="form-group full"><label>Noter (til medarbejder)</label><textarea id="f-notes" placeholder="Eks: Ring på dørklokken · Hund i haven · Parkér ved siden af indkørslen..."></textarea></div>
-        <!-- Day suggestion box -->
-        <div class="form-group full" id="zip-suggestion-wrap" style="display:none;">
-          <div id="zip-suggestion-box" style="background:linear-gradient(90deg,#e8f4fd,#f0f8ff);border:1.5px solid var(--blue-light);border-radius:10px;padding:14px 16px;">
-            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin-bottom:10px;"><i class="fa fa-lightbulb"></i> Forslag til besøgsdag</div>
-            <div id="zip-suggestion-content"></div>
-          </div>
-        </div>
       </div>
+
     </div>
-    <!-- TAB: Opgaver -->
-    <div class="modal-tab-pane" id="tab-tasks">
-      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">Tilføj separate arbejdsopgaver – hver med pris, frekvens og tidsforbrug.</p>
-      <div style="display:grid;grid-template-columns:1fr 90px 120px 80px 36px;gap:8px;margin-bottom:8px;">
-        <span style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Opgave</span>
-        <span style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Pris ex. moms</span>
-        <span style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Frekvens</span>
-        <span style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Tid (min)</span>
-        <span></span>
-      </div>
-      <div id="task-rows"></div>
-      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="addTaskRow()"><i class="fa fa-plus"></i> Tilføj opgave</button>
-    </div>
-    <!-- TAB: Udstyr -->
-    <div class="modal-tab-pane" id="tab-udstyr">
-      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:16px;">Marker det udstyr medarbejderen skal medbringe til denne kunde. Vises som ikoner i kalender og dagsrute.</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;" id="udstyr-checkboxes"></div>
-      <div style="border-top:1px solid var(--border);padding-top:14px;">
-        <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;"><i class="fa fa-plus"></i> Tilføj eget udstyrspunkt</div>
-        <div style="display:flex;gap:8px;">
-          <input id="udstyr-custom-input" placeholder="fx Trappestige, Skraber..." style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;">
-          <button class="btn btn-primary btn-sm" onclick="addCustomUdstyr()"><i class="fa fa-plus"></i> Tilføj</button>
-        </div>
-      </div>
-    </div>
-    <!-- TAB: Spærrede dage -->
-    <div class="modal-tab-pane" id="tab-blocked">
-      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:18px;">Marker de ugedage hvor kunden <strong>ikke</strong> ønsker besøg. Systemet vil advare ved planlægning.</p>
-      <div class="day-blocks">
-        <div class="day-block"><input type="checkbox" id="bd-0"><label for="bd-0">Man</label></div>
-        <div class="day-block"><input type="checkbox" id="bd-1"><label for="bd-1">Tir</label></div>
-        <div class="day-block"><input type="checkbox" id="bd-2"><label for="bd-2">Ons</label></div>
-        <div class="day-block"><input type="checkbox" id="bd-3"><label for="bd-3">Tor</label></div>
-        <div class="day-block"><input type="checkbox" id="bd-4"><label for="bd-4">Fre</label></div>
-      </div>
-      <div style="margin-top:20px;padding:14px;background:#f7fafd;border-radius:10px;font-size:0.8rem;color:var(--muted);">
-        <i class="fa fa-circle-info" style="color:var(--blue);margin-right:6px"></i>
-        Spærrede dage vises i ugeplanen, og auto-planlæg springer automatisk disse dage over for kunden.
-      </div>
-    </div>
+    <!-- hidden tab panes for compat -->
+    <div id="tab-basic" style="display:none;"></div>
+    <div id="tab-tasks" style="display:none;"></div>
+    <div id="tab-udstyr" style="display:none;"></div>
+    <div id="tab-blocked" style="display:none;"></div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modal-customer')">Annuller</button>
       <button class="btn btn-primary" onclick="saveCustomer()">Gem kunde</button>
@@ -2087,6 +2102,9 @@ function openModal(mode,id){
     if(manualPriceEl)manualPriceEl.value=c.tasks&&c.tasks.length?'':c.price||'';
     document.getElementById('f-prefTime').value=c.prefTime||'';
     for(let i=0;i<5;i++)document.getElementById('bd-'+i).checked=(c.blockedDays||[]).includes(i);
+    // Åbn spærrede dage dropdown hvis der er nogen
+    const blockedContent=document.querySelector('.blocked-content');
+    if(blockedContent)blockedContent.style.display=(c.blockedDays&&c.blockedDays.length)?'block':'none';
     taskRowsData=(c.tasks||[]).map(t=>({...t}));
     renderUdstyrCheckboxes(c.udstyr||[]);
   }else{
