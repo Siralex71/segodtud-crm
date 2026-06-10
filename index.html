@@ -6578,6 +6578,8 @@ setInterval(()=>{checkNotifications();checkExpiringTilbuds();},5*60*1000);
 applyRoleUI();
 updateRoleCSS();
 
+// Sørg for dashboard er aktivt ved opstart
+showView('dashboard', document.querySelector('.nav-item[onclick*=dashboard]'));
 renderDashboard();
 setTimeout(saveToLocalStorage,2000);
 // Show daily briefing
