@@ -2343,7 +2343,7 @@ function getWeekStart(offset=0){
   const day=d.getDay();
   const diff=d.getDate()-day+(day===0?-6:1);
   const monday=new Date(new Date().setDate(diff+offset*7));
-  monday.setHours(0,0,0,0);return monday;
+  monday.setHours(12,0,0,0);return monday;
 }
 function changeWeek(dir){currentWeekOffset+=dir;kalOffset=currentWeekOffset;renderKalender();}
 function goToToday(){currentWeekOffset=0;kalOffset=0;renderKalender();}
@@ -3394,8 +3394,14 @@ function kalGoToday(){kalOffset=0;renderKalender();}
 function kalGetWeekDates(){
   const now=new Date();
   const dow=(now.getDay()+6)%7;
-  const monday=new Date(now);monday.setDate(now.getDate()-dow+kalOffset*7);monday.setHours(0,0,0,0);
+  const monday=new Date(now);monday.setDate(now.getDate()-dow+kalOffset*7);monday.setHours(12,0,0,0); // Brug middag for at undgå UTC-skift
   return Array.from({length:5},(_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return d;});
+}
+function localDateStr(d){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
 }
 function kalGetMonthDates(){
   const now=new Date();
@@ -3478,7 +3484,7 @@ function renderKalWeek(){
   let html=`<div class="kal-week-grid">`;
   html+=`<div class="kal-week-header" style="${gridStyle}">`;
   dates.forEach((d,i)=>{
-    const ds=d.toISOString().slice(0,10);
+    const ds=localDateStr(d);
     const isToday=ds===todayStr;
     const total=dayTotalMinutes(ds);
     const stops=(weekSchedule[ds]||[]).length;
