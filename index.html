@@ -2565,26 +2565,55 @@ function saveTimeEntry(){
 }
 function autoScheduleWeek(){
   const monday=getWeekStart(currentWeekOffset);
+  // Ryd ugen først
   for(let i=0;i<5;i++){const d=new Date(monday);d.setDate(d.getDate()+i);delete weekSchedule[d.toISOString().slice(0,10)];}
+  
+  const arbejdsdagMin=7.5*60; // 450 min
   const active=customers.filter(c=>c.status==='Aktiv').sort((a,b)=>{
     const da=visitStatus(a).daysLeft??999;const db=visitStatus(b).daysLeft??999;return da-db;
   });
-  let dayCounters=[0,0,0,0,0];
+
+  // Beregn tidsforbrug per kunde inkl. estimeret køretid (15 min per kunde)
+  function kundeTid(c){
+    const opgavetid=c.tasks&&c.tasks.length?c.tasks.reduce((s,t)=>s+(t.duration||30),0):(customerDuration(c)||30);
+    return opgavetid+15; // +15 min køretid
+  }
+
+  // Dag-tidsbeholdning: start alle dage med 450 min
+  let dagTid=[450,450,450,450,450];
+
   active.forEach(c=>{
-    // find best day (not blocked, least busy)
-    let best=-1,bestCount=Infinity;
+    const tid=kundeTid(c);
+    // Find første dag der: ikke er spærret OG har tid nok
+    let valgtDag=-1;
     for(let d=0;d<5;d++){
       if((c.blockedDays||[]).includes(d))continue;
-      if(dayCounters[d]<bestCount){bestCount=dayCounters[d];best=d;}
+      if(dagTid[d]>=tid){valgtDag=d;break;} // Første dag med plads
     }
-    if(best===-1)best=0; // fallback even if blocked
-    const date=new Date(monday);date.setDate(date.getDate()+best);
+    // Fallback: dag med mest tid tilbage
+    if(valgtDag===-1){
+      let maxTid=-1;
+      for(let d=0;d<5;d++){
+        if((c.blockedDays||[]).includes(d))continue;
+        if(dagTid[d]>maxTid){maxTid=dagTid[d];valgtDag=d;}
+      }
+    }
+    if(valgtDag===-1)valgtDag=0;
+
+    dagTid[valgtDag]-=tid;
+    const date=new Date(monday);date.setDate(date.getDate()+valgtDag);
     const ds=date.toISOString().slice(0,10);
     if(!weekSchedule[ds])weekSchedule[ds]=[];
-    weekSchedule[ds].push({cid:c.id,time:c.prefTime||''});
-    dayCounters[best]++;
+    weekSchedule[ds].push({cid:c.id,time:c.prefTime||'',empId:c.empId||null});
   });
-  renderKalender();toast('Kalender auto-planlagt (spærrede dage respekteret) ✓');
+
+  saveToLocalStorage();
+  renderKalender();
+  
+  // Vis hvilke dage der er brugt
+  const dage=['Man','Tir','Ons','Tor','Fre'];
+  const brugteDage=dagTid.map((t,i)=>t<450?dage[i]:null).filter(Boolean);
+  toast('Auto-planlagt ✓ — Kunder samlet på: '+brugteDage.join(', '));
 }
 
 function clearAllScheduled(){
