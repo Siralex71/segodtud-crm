@@ -1961,6 +1961,11 @@ function addTaskRow(t){
   taskRowsData.push(row);
   renderTaskRows();
 }
+function removeTaskRow(i){
+  taskRowsData.splice(i,1);
+  renderTaskRows();
+  updateModalPrice();
+}
 function renderTaskRows(){
   document.getElementById('task-rows').innerHTML=taskRowsData.map((t,i)=>{
     const isOnDemand=t.freq==='Efter behov';
