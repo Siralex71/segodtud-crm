@@ -5394,22 +5394,70 @@ function renderDayRoutePanel(ds){
   }).join('');
 }
 
-function optimizeDayRoute(){
+async function optimizeDayRoute(){
   if(!selectedDayRoute)return;
   const entries=weekSchedule[selectedDayRoute]||[];
-  // Sort: overdue first, then by zip, then by time
-  const sorted=[...entries].sort((a,b)=>{
-    const ca=customers.find(x=>x.id===a.cid)||{};
-    const cb=customers.find(x=>x.id===b.cid)||{};
-    const vsA=visitStatus(ca).daysLeft??999;
-    const vsB=visitStatus(cb).daysLeft??999;
-    if(vsA<0&&vsB>=0)return -1;
-    if(vsB<0&&vsA>=0)return 1;
-    return getPostalSort(ca)-getPostalSort(cb);
+  if(entries.length<2){toast('Mindst 2 kunder skal til for at optimere');return;}
+
+  // Find medarbejder for denne dag
+  const empEntry=entries.find(e=>e.empId);
+  const emp=empEntry?employees.find(x=>x.id===empEntry.empId):null;
+
+  toast('Optimerer med Google Maps... ⏳');
+
+  // Load Google Maps hvis ikke loaded
+  if(!window.google||!window.google.maps){
+    await loadGoogleMapsScript();
+  }
+
+  const directionsService=new google.maps.DirectionsService();
+  const kundeIds=entries.map(e=>e.cid);
+  const waypoints=kundeIds.map(id=>{
+    const c=customers.find(x=>x.id===id);
+    return c?{location:c.addr+', Danmark',stopover:true}:null;
+  }).filter(Boolean);
+
+  const origin=emp&&emp.homeAddr?emp.homeAddr+', Danmark':waypoints[0].location;
+  const destination=emp&&emp.homeAddr?emp.homeAddr+', Danmark':waypoints[waypoints.length-1].location;
+  const midpoints=waypoints.slice(emp&&emp.homeAddr?0:1,emp&&emp.homeAddr?waypoints.length:waypoints.length-1);
+
+  const request={
+    origin,
+    destination,
+    waypoints:midpoints,
+    optimizeWaypoints:true,
+    travelMode:google.maps.TravelMode.DRIVING,
+  };
+
+  directionsService.route(request,(result,status)=>{
+    if(status!=='OK'){toast('Google Maps fejl: '+status);return;}
+
+    const order=result.routes[0].waypoint_order;
+    const optimizedIds=order.map(i=>kundeIds[i]);
+
+    // Beregn og gem tidspunkter
+    const legs=result.routes[0].legs;
+    let tid=new Date();tid.setHours(7,30,0,0);
+
+    optimizedIds.forEach((id,i)=>{
+      tid=new Date(tid.getTime()+legs[i].duration.value*1000);
+      const hh=String(tid.getHours()).padStart(2,'0');
+      const mm=String(tid.getMinutes()).padStart(2,'0');
+      const idx=weekSchedule[selectedDayRoute].findIndex(e=>e.cid===id);
+      if(idx>=0)weekSchedule[selectedDayRoute][idx].time=hh+':'+mm;
+      const c=customers.find(x=>x.id===id);
+      const kundetid=c&&c.tasks?c.tasks.reduce((s,t)=>s+(t.duration||30),0):30;
+      tid=new Date(tid.getTime()+kundetid*60*1000);
+    });
+
+    dayRouteOrder[selectedDayRoute]=optimizedIds;
+    saveToLocalStorage();
+    renderDayRoutePanel(selectedDayRoute);
+    renderKalender();
+
+    const totalMin=Math.round(legs.reduce((s,l)=>s+l.duration.value,0)/60);
+    toast('Rute optimeret med Google Maps ✓ — ca. '+totalMin+' min køretid');
   });
-  dayRouteOrder[selectedDayRoute]=sorted.map(e=>e.cid);
-  renderDayRoutePanel(selectedDayRoute);
-  toast('Dagsrute optimeret ✓');
 }
 
 function openDayGoogleMaps(){
