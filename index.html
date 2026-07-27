@@ -1753,7 +1753,7 @@ function annualRev(c){
 }
 const dayNames=['Mandag','Tirsdag','Onsdag','Torsdag','Fredag'];
 function getLastVisit(cid){const v=visits.filter(x=>x.customerId===cid);if(!v.length)return null;return v.sort((a,b)=>b.date.localeCompare(a.date))[0].date;}
-function getNextVisitDate(c){const last=getLastVisit(c.id);if(!last)return null;const d=new Date(last);d.setDate(d.getDate()+(freqDays[c.freq]||30));return d.toISOString().slice(0,10);}
+function getNextVisitDate(c){const last=getLastVisit(c.id);if(!last)return null;const d=new Date(last);d.setDate(d.getDate()+(freqDays[c.freq]||30));return localDateStr(d);}
 function visitStatus(c){
   const next=getNextVisitDate(c);
   if(!next)return{cls:'next-visit-soon',label:'Aldrig besøgt',daysLeft:null};
@@ -1876,7 +1876,7 @@ function renderDashboard(){
     if(monCard)monCard.style.display='none';
     if(pipCard)pipCard.style.display='none';
     // Vis antal dagens opgaver i en simpel stat
-    const today2=new Date().toISOString().slice(0,10);
+    const today2=localDateStr(new Date());
     const todayCount=(weekSchedule[today2]||[]).filter(e=>{const c=customers.find(x=>x.id===e.cid);return c&&c.empId===empId;}).length;
     const empStatWrap=document.getElementById('emp-today-stat');
     if(empStatWrap){
@@ -1937,7 +1937,7 @@ function renderDashboard(){
   }).join('');
 
   // Today's route
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateStr(new Date());
   const allTodayEntries=weekSchedule[today]||[];
   const todayEntries=isEmp&&empId
     ?allTodayEntries.filter(e=>{const c=customers.find(x=>x.id===e.cid);return c&&c.empId===empId;})
@@ -2330,7 +2330,7 @@ function renderWeek(){
   const grid=document.getElementById('week-grid');grid.innerHTML='';
   for(let i=0;i<5;i++){
     const date=new Date(monday);date.setDate(date.getDate()+i);
-    const dateStr=date.toISOString().slice(0,10);
+    const dateStr=localDateStr(date);
     const isToday=date.getTime()===today.getTime();
     const allEntries=(weekSchedule[dateStr]||[]).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
     const entries=isEmpKal?allEntries.filter(e=>{const c=customers.find(x=>x.id===e.cid);return c&&c.empId===currentEmpId;}):allEntries;
@@ -2481,7 +2481,7 @@ function scheduleRecurring(cid, startDateStr){
     while(cursor<=endDate){
       // Find nearest free day from current cursor position
       const placed=findNearestFreeDay(c, new Date(cursor));
-      const placedStr=placed.toISOString().slice(0,10);
+      const placedStr=localDateStr(placed);
       if(!weekSchedule[placedStr])weekSchedule[placedStr]=[];
       // Only add if not already scheduled for this customer on this date
       if(!weekSchedule[placedStr].find(x=>x.cid===cid)){
@@ -2701,7 +2701,7 @@ function openRouteDetail(id){
   document.getElementById('rdp-nextvisit').className=vs.cls;
 
   // Time for today
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateStr(new Date());
   const todayEntry=weekSchedule[today]&&weekSchedule[today].find(x=>x.cid===id);
   document.getElementById('rdp-time').value=todayEntry?todayEntry.time||'':c.prefTime||'';
   document.getElementById('rdp-time-note').textContent=c.prefTime?'Foretrukken tid: '+c.prefTime:'Ingen foretrukken tid sat';
@@ -2746,7 +2746,7 @@ function closeRouteDetail(){
 }
 function saveRdpTime(){
   if(!activeRouteCustomer)return;
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateStr(new Date());
   const time=document.getElementById('rdp-time').value;
   if(!weekSchedule[today])weekSchedule[today]=[];
   const idx=weekSchedule[today].findIndex(x=>x.cid===activeRouteCustomer);
@@ -2836,7 +2836,7 @@ function smartDayDistribution(){
   // Clear current week
   for(let i=0;i<5;i++){
     const d=new Date(monday);d.setDate(monday.getDate()+i);
-    const ds=d.toISOString().slice(0,10);
+    const ds=localDateStr(d);
     if(weekSchedule[ds])weekSchedule[ds]=weekSchedule[ds].filter(e=>!route.includes(e.cid));
     if(weekSchedule[ds]&&!weekSchedule[ds].length)delete weekSchedule[ds];
   }
@@ -2854,7 +2854,7 @@ function smartDayDistribution(){
     dayLoad[bestDay]+=groupMins;
     // Add customers to that day
     const d=new Date(monday);d.setDate(monday.getDate()+bestDay);
-    const ds=d.toISOString().slice(0,10);
+    const ds=localDateStr(d);
     if(!weekSchedule[ds])weekSchedule[ds]=[];
     custs.forEach(c=>{
       if(!weekSchedule[ds].find(e=>e.cid===c.id)){
@@ -2866,7 +2866,7 @@ function smartDayDistribution(){
   // Show summary
   const summary=days.map((di,i)=>{
     const d=new Date(monday);d.setDate(monday.getDate()+i);
-    const ds=d.toISOString().slice(0,10);
+    const ds=localDateStr(d);
     const cnt=(weekSchedule[ds]||[]).length;
     return cnt>0?`${['Man','Tir','Ons','Tor','Fre'][i]}: ${cnt} stop (${fmtDur(dayLoad[i])})`:null;
   }).filter(Boolean).join(' · ');
@@ -3023,7 +3023,7 @@ function renderMonth(){
 }
 
 function renderMonthCal(year,month){
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateStr(new Date());
   const firstDay=new Date(year,month,1);
   const lastDay=new Date(year,month+1,0);
   // Monday-first: day 0=Mon
@@ -3034,7 +3034,7 @@ function renderMonthCal(year,month){
     const dayNum=i-startDow+1;
     const isOtherMonth=dayNum<1||dayNum>lastDay.getDate();
     const date=new Date(year,month,dayNum);
-    const ds=date.toISOString().slice(0,10);
+    const ds=localDateStr(date);
     const entries=weekSchedule[ds]||[];
     const isToday=ds===today;
     const isWeekend=date.getDay()===0||date.getDay()===6;
@@ -3065,7 +3065,7 @@ function renderMonthList(year,month){
     const entries=weekSchedule[ds]||[];
     // Week number (Mon-based)
     const weekStart=new Date(date);weekStart.setDate(weekStart.getDate()-((weekStart.getDay()+6)%7));
-    const wk=weekStart.toISOString().slice(0,10);
+    const wk=localDateStr(weekStart);
     if(!weeks[wk])weeks[wk]=[];
     weeks[wk].push({ds,date,entries});
   }
@@ -3140,7 +3140,7 @@ function openVisitModal(){
   const sel=document.getElementById('v-customer');
   sel.innerHTML=customers.map(c=>`<option value="${c.id}">${c.first} ${c.last}</option>`).join('');
   if(selectedHistoryCustomer)sel.value=selectedHistoryCustomer;
-  document.getElementById('v-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('v-date').value=localDateStr(new Date());
   document.getElementById('v-price').value='';document.getElementById('v-note').value='';
   document.getElementById('modal-visit').classList.add('open');
 }
@@ -3161,7 +3161,7 @@ function initInvoice(){
   const sel=document.getElementById('inv-customer-select');
   sel.innerHTML='<option value="">– vælg –</option>'+customers.map(c=>`<option value="${c.id}">${c.first} ${c.last}</option>`).join('');
   if(!document.getElementById('inv-date').value){
-    document.getElementById('inv-date').value=new Date().toISOString().slice(0,10);
+    document.getElementById('inv-date').value=localDateStr(new Date());
     document.getElementById('inv-number-inp').value=new Date().getFullYear()+'-001';
   }
   renderInvLines();updateInvoice();
@@ -3185,7 +3185,7 @@ function renderInvLines(){
 function addInvoiceLine(){invLines.push({desc:'',qty:1,price:0});renderInvLines();updateInvoice();}
 function removeInvLine(i){if(invLines.length>1){invLines.splice(i,1);renderInvLines();updateInvoice();}}
 function updateInvoice(){
-  const dateVal=document.getElementById('inv-date').value||new Date().toISOString().slice(0,10);
+  const dateVal=document.getElementById('inv-date').value||localDateStr(new Date());
   const days=parseInt(document.getElementById('inv-days').value)||14;
   const dueDate=new Date(dateVal);dueDate.setDate(dueDate.getDate()+days);
   document.getElementById('inv-date-display').textContent=new Date(dateVal).toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'});
@@ -3337,7 +3337,7 @@ function renderEmployees(){
     const weekMins=myEntries.reduce((s,e)=>{const c=customers.find(x=>x.id===e.cid);return s+customerDuration(c);},0);
     const weekRev=myCust.reduce((s,c)=>s+customerPrice(c),0);
     // Next 7 days
-    const today=new Date().toISOString().slice(0,10);
+    const today=localDateStr(new Date());
     const upcoming=Object.entries(weekSchedule)
       .filter(([ds])=>ds>=today)
       .flatMap(([ds,entries])=>entries.filter(e=>myCust.some(c=>c.id===e.cid)).map(e=>({ds,...e})))
@@ -3619,7 +3619,7 @@ function renderKalMonth(){
   const target=kalGetMonthDates();
   const year=target.getFullYear(),month=target.getMonth();
   document.getElementById('kal-title').textContent=target.toLocaleDateString('da-DK',{month:'long',year:'numeric'});
-  const todayStr=new Date().toISOString().slice(0,10);
+  const todayStr=localDateStr(new Date());
   const firstDow=(new Date(year,month,1).getDay()+6)%7;
   const daysInMonth=new Date(year,month+1,0).getDate();
   const totalCells=Math.ceil((firstDow+daysInMonth)/7)*7;
@@ -3630,7 +3630,7 @@ function renderKalMonth(){
       const dayNum=i-firstDow+1;
       const isOther=dayNum<1||dayNum>daysInMonth;
       const date=new Date(year,month,dayNum);
-      const ds=date.toISOString().slice(0,10);
+      const ds=localDateStr(date);
       const dow=date.getDay();
       const isWeekend=dow===0||dow===6;
       const isToday=ds===todayStr;
@@ -3811,7 +3811,7 @@ function openInvoiceReview(dateStr,cid){
   // Add to facturas overview
   const paydays=firmSettings.paydays||14;
   const dueDate=new Date(today);dueDate.setDate(dueDate.getDate()+paydays);
-  facturas.push({id:++nextId,num:invNum,customerId:cid,customerName:c.first+' '+c.last,date:today.toISOString().slice(0,10),dueDate:dueDate.toISOString().slice(0,10),total,status:'pending'});
+  facturas.push({id:++nextId,num:invNum,customerId:cid,customerName:c.first+' '+c.last,date:localDateStr(today),dueDate:localDateStr(dueDate),total,status:'pending'});
 
   document.getElementById('modal-invoice-review').classList.add('open');
 
@@ -4020,7 +4020,7 @@ function renderNotifList(){
 function clearNotifs(){notifications=[];renderNotifBadge();renderNotifList();}
 // Check for overdue visits and unpaid invoices
 function checkNotifications(){
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateStr(new Date());
   // Forfaldne besøg
   customers.filter(c=>c.status==='Aktiv').forEach(c=>{
     const vs=visitStatus(c);
@@ -4141,9 +4141,9 @@ function openTilbudModal(id){
     tbLines=t.lines.map(l=>({...l}));
   }else{
     ['tb-name','tb-email','tb-addr','tb-msg'].forEach(x=>document.getElementById(x).value='');
-    document.getElementById('tb-date').value=new Date().toISOString().slice(0,10);
+    document.getElementById('tb-date').value=localDateStr(new Date());
     const exp=new Date();exp.setDate(exp.getDate()+30);
-    document.getElementById('tb-expiry').value=exp.toISOString().slice(0,10);
+    document.getElementById('tb-expiry').value=localDateStr(exp);
     tbLines=[{desc:'Vinduespudsning',qty:1,price:0}];
   }
   renderTbLines();
@@ -4845,7 +4845,7 @@ function renderFerie(){
   document.getElementById('ferie-list-title').textContent=`Fridage – ${selObj?selObj.label:''}`;
 
   // Calendar grid
-  const todayStr=new Date().toISOString().slice(0,10);
+  const todayStr=localDateStr(new Date());
   const firstDow=(new Date(year,month,1).getDay()+6)%7;
   const daysInMonth=new Date(year,month+1,0).getDate();
   const totalCells=Math.ceil((firstDow+daysInMonth)/7)*7;
@@ -4854,7 +4854,7 @@ function renderFerie(){
     const dn=i-firstDow+1;
     const isOther=dn<1||dn>daysInMonth;
     const d=new Date(year,month,dn);
-    const ds=d.toISOString().slice(0,10);
+    const ds=localDateStr(d);
     const dow=d.getDay();
     const isWe=dow===0||dow===6;
     const isHol=!!holidayDays[ds];
@@ -5041,7 +5041,7 @@ function renderEmpStats(){
 // ── 💬 SMS PÅMINDELSER ──
 function sendTomorrowSMS(){
   const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
-  const ds=tomorrow.toISOString().slice(0,10);
+  const ds=localDateStr(tomorrow);
   const entries=weekSchedule[ds]||[];
   if(!entries.length){toast('Ingen kunder planlagt i morgen');return;}
   const msgTemplate=firmSettings.smsMsg||'Hej {navn}, vi kommer i morgen kl. {tid} for at pudse vinduer. Mvh {firma}';
@@ -5566,7 +5566,7 @@ function globalSearch(q){
 // ── 🔔 DAGLIG BRIEFING ──
 function showBriefing(){
   const today=new Date();
-  const ds=today.toISOString().slice(0,10);
+  const ds=localDateStr(today);
   const todayEntries=(weekSchedule[ds]||[]).filter(e=>{
     if(currentRole==='employee'&&currentEmpId){
       const c=customers.find(x=>x.id===e.cid);
@@ -5637,7 +5637,7 @@ function exportData(){
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=url;a.download=`clearview-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.href=url;a.download=`clearview-backup-${localDateStr(new Date())}.json`;
   document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
   // Mark backup done
   localStorage.setItem(BACKUP_KEY,new Date().toISOString());
@@ -5785,7 +5785,7 @@ let timerSeconds=0, timerInterval=null, timerRunning=false;
 let timerLogs=[]; // {cid, dateStr, seconds, note}
 
 function openTimerModal(cid, dateStr){
-  timerCid=cid; timerDateStr=dateStr||new Date().toISOString().slice(0,10);
+  timerCid=cid; timerDateStr=dateStr||localDateStr(new Date());
   const c=customers.find(x=>x.id===cid);
   document.getElementById('timer-customer-label').textContent=c?`${c.first} ${c.last} – ${c.addr}`:'';
   timerSeconds=0; timerRunning=false;
@@ -6300,7 +6300,7 @@ function optimizeEmpRoute(empId){
   // Clear this employee's current week schedule
   for(let i=0;i<5;i++){
     const d=new Date(monday);d.setDate(monday.getDate()+i);
-    const ds=d.toISOString().slice(0,10);
+    const ds=localDateStr(d);
     if(weekSchedule[ds]){
       weekSchedule[ds]=weekSchedule[ds].filter(e=>{
         const c=customers.find(x=>x.id===e.cid);
@@ -6363,7 +6363,7 @@ function optimizeEmpRoute(empId){
   dayCustomers.forEach((dayCusts,di)=>{
     if(!dayCusts.length)return;
     const d=new Date(monday);d.setDate(monday.getDate()+di);
-    const ds=d.toISOString().slice(0,10);
+    const ds=localDateStr(d);
 
     // Nearest-neighbor sort starting from home
     let remaining=[...dayCusts];
@@ -6866,7 +6866,7 @@ function showGroupCustomers(gid){
 function planGroupWeek(gid){
   const g=customerGroups.find(x=>x.id===gid);if(!g)return;
   const monday=new Date();monday.setDate(monday.getDate()-((monday.getDay()+6)%7));monday.setHours(0,0,0,0);
-  const ds=monday.toISOString().slice(0,10);
+  const ds=localDateStr(monday);
   if(!weekSchedule[ds])weekSchedule[ds]=[];
   let added=0;
   g.customerIds.forEach(cid=>{
@@ -6924,7 +6924,7 @@ function checkCustomerReminders(){
   const days=firmSettings.reminderDays||0;
   if(!days)return;
   const target=new Date();target.setDate(target.getDate()+days);
-  const targetStr=target.toISOString().slice(0,10);
+  const targetStr=localDateStr(target);
   const entries=weekSchedule[targetStr]||[];
   if(!entries.length)return;
   // Check if we already notified today
@@ -7107,7 +7107,7 @@ function visOptimerRuteDialog() {
   sel.innerHTML = '<option value="">— Vælg medarbejder —</option>'
     + employees.map(e => '<option value="'+e.id+'">'+e.first+' '+e.last+'</option>').join('');
   // Sæt dato til i dag
-  document.getElementById('optimer-dato').value = new Date().toISOString().slice(0,10);
+  document.getElementById('optimer-dato').value = localDateStr(new Date());
   document.getElementById('modal-optimer-rute').classList.add('open');
 }
 
@@ -7122,8 +7122,8 @@ function startOptimering() {
 
 function åbnMinRuteIMaps(dag='today') {
   const dato = dag === 'tomorrow'
-    ? new Date(Date.now() + 86400000).toISOString().slice(0,10)
-    : new Date().toISOString().slice(0,10);
+    ? localDateStr(new Date(Date.now() + 86400000))
+    : localDateStr(new Date());
 
   const entries = (weekSchedule[dato] || []).filter(e => {
     const c = customers.find(x => x.id === e.cid);
