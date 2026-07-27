@@ -2537,55 +2537,117 @@ function saveTimeEntry(){
   closeModal('modal-set-time');renderKalender();toast('Tidspunkt gemt ✓');
 }
 function autoScheduleWeek(){
-  const monday=getWeekStart(currentWeekOffset);
+  // Brug altid næste mandag hvis i dag er torsdag/fredag, ellers denne uges mandag
+  const today = new Date();
+  const dow = (today.getDay()+6)%7; // 0=man, 4=tor, 5=fre
+  // Brug den uge man kigger på i kalenderen
+  const monday = getWeekStart(currentWeekOffset);
+
   // Ryd ugen først
-  for(let i=0;i<5;i++){const d=new Date(monday);d.setDate(d.getDate()+i);delete weekSchedule[d.toISOString().slice(0,10)];}
-  
+  for(let i=0;i<5;i++){
+    const d=new Date(monday);d.setDate(d.getDate()+i);
+    delete weekSchedule[localDateStr(d)];
+  }
+
   const arbejdsdagMin=7.5*60; // 450 min
   const active=customers.filter(c=>c.status==='Aktiv').sort((a,b)=>{
     const da=visitStatus(a).daysLeft??999;const db=visitStatus(b).daysLeft??999;return da-db;
   });
 
-  // Beregn tidsforbrug per kunde inkl. estimeret køretid (15 min per kunde)
   function kundeTid(c){
     const opgavetid=c.tasks&&c.tasks.length?c.tasks.reduce((s,t)=>s+(t.duration||30),0):(customerDuration(c)||30);
-    return opgavetid+15; // +15 min køretid
+    return opgavetid+15;
   }
 
-  // Dag-tidsbeholdning: start alle dage med 450 min
-  let dagTid=[450,450,450,450,450];
+  // Per medarbejder og chef: dag-tidsbeholdning
+  // Byg en liste over alle "slots": emp1-dag0, emp1-dag1... chef-dag0 etc.
+  const alleUdøvere = [...employees.map(e=>e.id), 'chef'];
+  const dagTidMap = {};
+  alleUdøvere.forEach(uid => {
+    dagTidMap[uid] = [450,450,450,450,450];
+  });
 
   active.forEach(c=>{
-    const tid=kundeTid(c);
-    // Find første dag der: ikke er spærret OG har tid nok
-    let valgtDag=-1;
-    for(let d=0;d<5;d++){
-      if((c.blockedDays||[]).includes(d))continue;
-      if(dagTid[d]>=tid){valgtDag=d;break;} // Første dag med plads
+    const tid = kundeTid(c);
+    const blocked = c.blockedDays||[];
+
+    // Bestem hvem der skal have kunden
+    // 1. Kunden har en specifik medarbejder
+    // 2. Find medarbejder med plads i samme område
+    // 3. Ellers chef
+
+    let tildeltUid = c.empId || null;
+
+    if (!tildeltUid) {
+      // Find medarbejder med plads — prioriter dem der allerede har kunder planlagt denne dag
+      let bedstEmpId = null;
+      let bedstScore = -1;
+      employees.forEach(emp => {
+        for(let d=0;d<5;d++){
+          if(blocked.includes(d))continue;
+          if(dagTidMap[emp.id][d] >= tid){
+            // Score: bonus hvis andre kunder i samme zip på den dag
+            const ds = localDateStr(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate()+d, 12));
+            const sammeZip = (weekSchedule[ds]||[]).filter(e=>{
+              const cx=customers.find(x=>x.id===e.cid);
+              return cx&&cx.zip===c.zip;
+            }).length;
+            const score = sammeZip * 10 + dagTidMap[emp.id][d];
+            if(score > bedstScore){ bedstScore=score; bedstEmpId=emp.id; }
+            break;
+          }
+        }
+      });
+      tildeltUid = bedstEmpId || 'chef';
     }
-    // Fallback: dag med mest tid tilbage
+
+    const tidsBeholdning = dagTidMap[tildeltUid] || dagTidMap['chef'];
+
+    // Find bedste dag for denne udøver
+    let valgtDag = -1;
+    let bedstDagScore = -1;
+    for(let d=0;d<5;d++){
+      if(blocked.includes(d))continue;
+      if(tidsBeholdning[d] < tid) continue;
+      // Score: bonus for kunder i samme zip
+      const ds = localDateStr(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate()+d, 12));
+      const sammeZip = (weekSchedule[ds]||[]).filter(e=>{
+        const cx=customers.find(x=>x.id===e.cid);
+        return cx&&cx.zip===c.zip;
+      }).length;
+      const score = sammeZip * 100 + tidsBeholdning[d];
+      if(score > bedstDagScore){ bedstDagScore=score; valgtDag=d; }
+    }
+
     if(valgtDag===-1){
-      let maxTid=-1;
+      // Fallback: dag med mest tid
       for(let d=0;d<5;d++){
-        if((c.blockedDays||[]).includes(d))continue;
-        if(dagTid[d]>maxTid){maxTid=dagTid[d];valgtDag=d;}
+        if(blocked.includes(d))continue;
+        if(tidsBeholdning[d]>=(tidsBeholdning[valgtDag]||0))valgtDag=d;
       }
     }
     if(valgtDag===-1)valgtDag=0;
 
-    dagTid[valgtDag]-=tid;
-    const date=new Date(monday);date.setDate(date.getDate()+valgtDag);
-    const ds=localDateStr(date);
+    tidsBeholdning[valgtDag] -= tid;
+
+    const date = new Date(monday);date.setDate(date.getDate()+valgtDag);date.setHours(12,0,0);
+    const ds = localDateStr(date);
     if(!weekSchedule[ds])weekSchedule[ds]=[];
-    weekSchedule[ds].push({cid:c.id,time:c.prefTime||'',empId:c.empId||null});
+    weekSchedule[ds].push({
+      cid: c.id,
+      time: c.prefTime||'',
+      empId: tildeltUid==='chef' ? null : tildeltUid
+    });
   });
 
   saveToLocalStorage();
   renderKalender();
-  
-  // Vis hvilke dage der er brugt
+
   const dage=['Man','Tir','Ons','Tor','Fre'];
-  const brugteDage=dagTid.map((t,i)=>t<450?dage[i]:null).filter(Boolean);
+  const brugteDage = [0,1,2,3,4].filter(d=>{
+    const ds=localDateStr(new Date(monday.getFullYear(),monday.getMonth(),monday.getDate()+d,12));
+    return (weekSchedule[ds]||[]).length>0;
+  }).map(d=>dage[d]);
   toast('Auto-planlagt ✓ — Kunder samlet på: '+brugteDage.join(', '));
 }
 
