@@ -2604,19 +2604,25 @@ function autoScheduleWeek(){
     const tidsBeholdning = dagTidMap[tildeltUid] || dagTidMap['chef'];
 
     // Find bedste dag for denne udøver
+    // Prioriter: 1) tidligst mulig dag, 2) samme postnummer bonus
     let valgtDag = -1;
-    let bedstDagScore = -1;
+    // Først: find om der er en dag med kunder i samme zip
     for(let d=0;d<5;d++){
       if(blocked.includes(d))continue;
       if(tidsBeholdning[d] < tid) continue;
-      // Score: bonus for kunder i samme zip
-      const ds = localDateStr(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate()+d, 12));
+      const ds = localDateStr(addDays(monday, d));
       const sammeZip = (weekSchedule[ds]||[]).filter(e=>{
         const cx=customers.find(x=>x.id===e.cid);
         return cx&&cx.zip===c.zip;
       }).length;
-      const score = sammeZip * 100 + tidsBeholdning[d];
-      if(score > bedstDagScore){ bedstDagScore=score; valgtDag=d; }
+      if(sammeZip > 0){ valgtDag=d; break; } // Tag første dag med kunder i samme område
+    }
+    // Ellers: tag den første dag med plads (mandag først)
+    if(valgtDag===-1){
+      for(let d=0;d<5;d++){
+        if(blocked.includes(d))continue;
+        if(tidsBeholdning[d] >= tid){ valgtDag=d; break; }
+      }
     }
 
     if(valgtDag===-1){
