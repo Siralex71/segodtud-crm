@@ -2179,11 +2179,20 @@ function saveCustomer(){
   const selParent=parseInt(document.getElementById('f-parent')?.value)||null;
   parentCustomers.forEach(p=>{p.childIds=(p.childIds||[]).filter(x=>x!==c.id);});
   if(selParent){const p=parentCustomers.find(x=>x.id===selParent);if(p){p.childIds=p.childIds||[];p.childIds.push(c.id);}}
-  if(editingId){customers[customers.findIndex(x=>x.id===editingId)]=c;toast('Kunde opdateret ✓');}
-  else{customers.push(c);toast('Kunde tilføjet ✓');}
-  closeModal('modal-customer');
-  renderCustomers();
-  saveToLocalStorage();
+  if(editingId){
+    customers[customers.findIndex(x=>x.id===editingId)]=c;
+    toast('Kunde opdateret ✓');
+    closeModal('modal-customer');
+    renderCustomers();
+    saveToLocalStorage();
+  } else {
+    customers.push(c);
+    closeModal('modal-customer');
+    renderCustomers();
+    saveToLocalStorage();
+    // Foreslå planlægning for ny kunde
+    setTimeout(()=>forslagPlanlægning(c), 400);
+  }
 }
 function deleteCustomer(id){if(!confirm('Slet denne kunde?'))return;customers=customers.filter(c=>c.id!==id);route=route.filter(r=>r!==id);renderCustomers();toast('Kunde slettet');}
 
@@ -7082,6 +7091,138 @@ function åbnMinRuteIMaps(dag='today') {
   toast('Rute åbnet i Google Maps ✓');
 }
 
+// ── 🗓 PLANLÆGNINGSFORSLAG ──
+function forslagPlanlægning(nyKunde) {
+  const arbejdsdagMin = 7.5 * 60;
+  const køretidPrKunde = 15;
+  const dageNavn = ['Mandag','Tirsdag','Onsdag','Torsdag','Fredag'];
+
+  // Beregn kundens tidsforbrug
+  function kundeTid(c) {
+    return (c.tasks&&c.tasks.length ? c.tasks.reduce((s,t)=>s+(t.duration||30),0) : 30) + køretidPrKunde;
+  }
+
+  // Find næste 4 uger af datoer
+  const datoer = [];
+  const now = new Date();
+  for (let w = 0; w < 4; w++) {
+    for (let d = 0; d < 5; d++) {
+      const dato = new Date(now);
+      const dow = (now.getDay()+6)%7;
+      dato.setDate(now.getDate() - dow + w*7 + d);
+      dato.setHours(12,0,0,0);
+      const ds = localDateStr(dato);
+      if (ds >= localDateStr(now)) datoer.push({ds, dow: d, dato});
+    }
+  }
+
+  // Scorer hver dato
+  const forslag = datoer.map(({ds, dow, dato}) => {
+    // Spring spærrede dage over
+    if ((nyKunde.blockedDays||[]).includes(dow)) return null;
+
+    const entries = weekSchedule[ds] || [];
+
+    // Find kunder i samme postnummer/område denne dag
+    const sammeOmråde = entries.filter(e => {
+      const c = customers.find(x => x.id === e.cid);
+      return c && c.zip === nyKunde.zip;
+    });
+
+    // Beregn ledig kapacitet
+    const brugtTid = entries.reduce((s,e) => {
+      const c = customers.find(x => x.id === e.cid);
+      return s + (c ? kundeTid(c) : 30);
+    }, 0);
+    const ledigTid = arbejdsdagMin - brugtTid;
+
+    if (ledigTid < kundeTid(nyKunde)) return null; // Ikke plads
+
+    // Find bedste medarbejder til denne dag
+    let bedstEmp = null;
+    let bedstEmpLedigTid = 0;
+
+    if (nyKunde.empId) {
+      // Kunden er tildelt specifik medarbejder
+      bedstEmp = employees.find(e => e.id === nyKunde.empId);
+      const empBrugt = entries.filter(e => e.empId === nyKunde.empId).reduce((s,e) => {
+        const c = customers.find(x => x.id === e.cid);
+        return s + (c ? kundeTid(c) : 30);
+      }, 0);
+      bedstEmpLedigTid = arbejdsdagMin - empBrugt;
+    } else {
+      // Find medarbejder med plads i området
+      employees.forEach(emp => {
+        const empEntries = entries.filter(e => e.empId === emp.id);
+        const empOmråde = empEntries.filter(e => {
+          const c = customers.find(x => x.id === e.cid);
+          return c && c.zip === nyKunde.zip;
+        });
+        const empBrugt = empEntries.reduce((s,e) => {
+          const c = customers.find(x => x.id === e.cid);
+          return s + (c ? kundeTid(c) : 30);
+        }, 0);
+        const ledig = arbejdsdagMin - empBrugt;
+        if (ledig >= kundeTid(nyKunde) && (empOmråde.length > 0 || ledig > bedstEmpLedigTid)) {
+          bedstEmp = emp;
+          bedstEmpLedigTid = ledig;
+        }
+      });
+    }
+
+    // Score: flere kunder i samme område = højere score
+    const score = sammeOmråde.length * 100 + (bedstEmp ? 50 : 0) + Math.round(ledigTid/10);
+
+    return {ds, dow, dato, sammeOmråde: sammeOmråde.length, ledigTid, bedstEmp, score};
+  }).filter(Boolean).sort((a,b) => b.score - a.score);
+
+  if (forslag.length === 0) {
+    toast('Ingen ledige dage fundet i de næste 4 uger');
+    return;
+  }
+
+  // Vis top 3 forslag
+  const top3 = forslag.slice(0, 3);
+  const listeHTML = top3.map((f, i) => {
+    const datoLabel = f.dato.toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'long'});
+    const empNavn = f.bedstEmp ? f.bedstEmp.first+' '+f.bedstEmp.last : 'Dig (chef)';
+    const empFarve = f.bedstEmp ? 'var(--blue)' : 'var(--orange)';
+    const områdeInfo = f.sammeOmråde > 0
+      ? `<span style="color:var(--green);font-size:0.75rem;">✓ ${f.sammeOmråde} kunde${f.sammeOmråde>1?'r':''} i samme område</span>`
+      : `<span style="color:var(--muted);font-size:0.75rem;">Ingen andre kunder i området</span>`;
+    const ledigLabel = Math.round(f.ledigTid/60*10)/10 + 't ledigt';
+    return `<div style="border:1.5px solid ${i===0?'var(--blue)':'var(--border)'};border-radius:10px;padding:14px;cursor:pointer;background:${i===0?'#f0f7ff':'#fff'};transition:all 0.15s;" onclick="accepterForslag('${f.ds}',${nyKunde.id},${f.bedstEmp?f.bedstEmp.id:'null'})">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-weight:700;font-size:0.95rem;">${datoLabel}</div>
+          <div style="margin-top:4px;">${områdeInfo}</div>
+          <div style="margin-top:3px;font-size:0.75rem;color:${empFarve};font-weight:600;">👷 ${empNavn} — ${ledigLabel}</div>
+        </div>
+        ${i===0?'<span style="background:var(--blue);color:#fff;border-radius:20px;padding:2px 10px;font-size:0.7rem;font-weight:700;">Bedste</span>':''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('forslag-kunde-navn').textContent = nyKunde.first + ' ' + nyKunde.last;
+  document.getElementById('forslag-liste').innerHTML = listeHTML;
+  document.getElementById('modal-planlæg-forslag').classList.add('open');
+}
+
+function accepterForslag(ds, kundeId, empId) {
+  if (!weekSchedule[ds]) weekSchedule[ds] = [];
+  const c = customers.find(x => x.id === kundeId);
+  const tildeltEmp = empId || c?.empId || null;
+  weekSchedule[ds].push({cid: kundeId, time: c?.prefTime||'', empId: tildeltEmp});
+  // Opdater kundens empId hvis ikke sat
+  if (!c.empId && tildeltEmp) c.empId = tildeltEmp;
+  saveToLocalStorage();
+  closeModal('modal-planlæg-forslag');
+  renderKalender();
+  const dato = new Date(ds.split('-')[0], ds.split('-')[1]-1, ds.split('-')[2], 12);
+  const datoLabel = dato.toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'long'});
+  toast('Kunde planlagt ' + datoLabel + ' ✓');
+}
+
 </script>
 
 <!-- KUNDEKORT POPUP -->
@@ -7197,6 +7338,16 @@ function åbnMinRuteIMaps(dag='today') {
       <button class="btn btn-outline" style="flex:1;" onclick="closeModal('modal-rute-optimeret')">Luk</button>
       <button class="btn btn-primary" style="flex:1;" id="rute-abn-maps"><i class="fa fa-map"></i> Åbn i Google Maps</button>
     </div>
+  </div>
+</div>
+
+<!-- PLANLÆGNINGSFORSLAG MODAL -->
+<div class="modal-bg" id="modal-planlæg-forslag" onclick="if(event.target===this)closeModal('modal-planlæg-forslag')">
+  <div class="modal" style="max-width:500px;">
+    <h3>🗓 Hvornår skal <span id="forslag-kunde-navn"></span> besøges?</h3>
+    <p style="font-size:0.82rem;color:var(--muted);margin-bottom:16px;">Systemet foreslår de bedste datoer baseret på geografisk nærhed og medarbejdernes kapacitet.</p>
+    <div id="forslag-liste" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
+    <button class="btn btn-outline" style="width:100%;" onclick="closeModal('modal-planlæg-forslag')">Planlæg selv senere</button>
   </div>
 </div>
 
