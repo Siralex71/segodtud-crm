@@ -2541,7 +2541,7 @@ function autoScheduleWeek(){
   const today = new Date();
   const dow = (today.getDay()+6)%7; // 0=man, 4=tor, 5=fre
   // Brug den uge man kigger på i kalenderen
-  const monday = getWeekStart(currentWeekOffset);
+  const monday = getWeekStart(kalOffset);
 
   // Ryd ugen først
   for(let i=0;i<5;i++){
