@@ -3509,7 +3509,7 @@ function renderKalWeek(){
     </div>`;
     html+=`<div class="kal-week-row" style="${gridStyle}">`;
     dates.forEach(d=>{
-      const ds=d.toISOString().slice(0,10);
+      const ds=localDateStr(d);
       const isToday=ds===todayStr;
       const entries=kalEntriesForDate(ds).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
       html+=`<div class="kal-cell${isToday?' today-col':''}" ondragover="kalDragOver(event)" ondrop="kalDrop(event,'${ds}')" ondragleave="this.classList.remove('kal-drop-target')">`;
@@ -3538,7 +3538,7 @@ function renderKalWeek(){
 
     // Check if this section has any entries in the week
     const hasAny=dates.some(d=>{
-      const ds=d.toISOString().slice(0,10);
+      const ds=localDateStr(d);
       const entries=weekSchedule[ds]||[];
       return entries.some(e=>{
         const c=customers.find(x=>x.id===e.cid);
@@ -3554,7 +3554,7 @@ function renderKalWeek(){
     </div>`;
     html+=`<div class="kal-week-row" style="${gridStyle}">`;
     dates.forEach(d=>{
-      const ds=d.toISOString().slice(0,10);
+      const ds=localDateStr(d);
       const isToday=ds===todayStr;
       const allEntries=weekSchedule[ds]||[];
       const entries=allEntries.filter(e=>{
