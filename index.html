@@ -7323,13 +7323,6 @@ function planlægFremadrettet() {
       }
     });
 
-    // Find hvilken ugedag kunden normalt besøges (fra eksisterende planlægning)
-    let foretrukkenDow = -1; // -1 = ingen præference
-    if (sidstePlanlagt) {
-      const dow = sidstePlanlagt.getDay();
-      foretrukkenDow = (dow + 6) % 7; // 0=man...4=fre
-    }
-
     // Næste besøg skal være intervalDage efter sidst planlagte (eller fra i dag)
     let næsteBesøg = sidstePlanlagt 
       ? new Date(sidstePlanlagt.getTime() + intervalDage * 86400000)
@@ -7337,18 +7330,19 @@ function planlægFremadrettet() {
 
     // Planlæg alle besøg frem til slutdato
     while (næsteBesøg <= slutDato) {
-      // Find nærmeste foretrukne ugedag (eller hverdag) der ikke er spærret
-      let forsøg = new Date(næsteBesøg);
+      // Find mandagen i den uge besøget falder i
+      const dow = næsteBesøg.getDay();
+      const daysToMon = dow === 0 ? 1 : dow === 1 ? 0 : 8 - dow;
+      const mandag = new Date(næsteBesøg.getTime() + daysToMon * 86400000);
+      
+      let forsøg = mandag;
       let fundet = false;
       
-      for (let offset = 0; offset < 14; offset++) {
+      for (let offset = 0; offset < 5; offset++) {
         const test = new Date(forsøg.getTime() + offset * 86400000);
-        const dow = test.getDay(); // 0=søn, 6=lør
-        if (dow === 0 || dow === 6) continue; // Spring weekend over
-        const dowMon = (dow + 6) % 7; // 0=man...4=fre
-        
-        // Foretruk den dag kunden normalt besøges
-        if (foretrukkenDow !== -1 && dowMon !== foretrukkenDow && offset < 7) continue;
+        const dow = test.getDay();
+        if (dow === 0 || dow === 6) continue;
+        const dowMon = (dow + 6) % 7;
         if ((c.blockedDays||[]).includes(dowMon)) continue;
         
         const ds = localDateStr(test);
