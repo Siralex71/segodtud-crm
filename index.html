@@ -579,6 +579,7 @@ tr:hover td{background:#f7fbff;}
       <div id="kal-plan-toolbar" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding:10px 14px;background:var(--white);border-radius:10px;border:1px solid var(--border);box-shadow:var(--shadow);">
         <span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);"><i class="fa fa-sliders" style="color:var(--blue)"></i> Planlægning</span>
         <button class="btn btn-primary btn-sm" onclick="autoScheduleWeek()"><i class="fa fa-bolt"></i> Auto-planlæg uge</button>
+        <button class="btn btn-outline btn-sm" onclick="planlægFremadrettet()" style="background:#16a34a;color:#fff;border-color:#16a34a;"><i class="fa fa-calendar-check"></i> Planlæg fremadrettet</button>
         <button class="btn btn-outline btn-sm" onclick="clearAllScheduled()"><i class="fa fa-trash"></i> Ryd alt</button>
         <button class="btn btn-green btn-sm" onclick="saveToLocalStorage();toast('Kalender gemt ✓')"><i class="fa fa-floppy-disk"></i> Gem</button>
         <div style="margin-left:auto;font-size:0.75rem;color:var(--muted);align-self:center;"><i class="fa fa-hand-pointer"></i> Træk kunder fra puljen nedenfor ind i kalender</div>
@@ -7262,6 +7263,142 @@ function accepterForslag(ds, kundeId, empId) {
   const dato = new Date(ds.split('-')[0], ds.split('-')[1]-1, ds.split('-')[2], 12);
   const datoLabel = dato.toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'long'});
   toast('Kunde planlagt ' + datoLabel + ' ✓');
+}
+
+// ── 📅 FREMADRETTET PLANLÆGNING ──
+const freqTilDage = {
+  'Ugentlig': 7,
+  'Hver 14. dag': 14,
+  'Månedlig': 30,
+  'Hver 2. måned': 61,
+  'Kvartalsvis': 91,
+  'Halvårlig': 183,
+  'Årlig': 365,
+  'Efter behov': 0
+};
+
+function planlægFremadrettet() {
+  const måneder = 3; // Planlæg 3 måneder frem
+  const arbejdsdagMin = 7.5 * 60;
+  
+  function kundeTid(c) {
+    return (c.tasks&&c.tasks.length ? c.tasks.reduce((s,t)=>s+(t.duration||30),0) : 30) + 15;
+  }
+
+  // Find kundens primære frekvens (hyppigste opgave eller standard)
+  function kundeFrekvens(c) {
+    if (c.tasks && c.tasks.length) {
+      // Find den hyppigste ikke-"Efter behov" opgave
+      const aktive = c.tasks.filter(t => t.freq !== 'Efter behov');
+      if (aktive.length) {
+        // Sorter efter frekvens (hyppigst først)
+        aktive.sort((a,b) => (freqTilDage[a.freq]||30) - (freqTilDage[b.freq]||30));
+        return aktive[0].freq;
+      }
+    }
+    return c.freq || 'Månedlig';
+  }
+
+  const slutDato = new Date();
+  slutDato.setMonth(slutDato.getMonth() + måneder);
+  
+  // Start fra i dag
+  const startDato = new Date();
+  startDato.setHours(12,0,0,0);
+
+  let planlagtCount = 0;
+  const active = customers.filter(c => c.status === 'Aktiv');
+
+  // For hver kunde: find næste planlagte besøg og planlæg fremad
+  active.forEach(c => {
+    const freq = kundeFrekvens(c);
+    const intervalDage = freqTilDage[freq];
+    if (!intervalDage) return; // Spring "Efter behov" over
+
+    // Find sidste planlagte besøg
+    let sidstePlanlagt = null;
+    Object.keys(weekSchedule).sort().forEach(ds => {
+      if ((weekSchedule[ds]||[]).some(e => e.cid === c.id)) {
+        sidstePlanlagt = new Date(ds.split('-')[0], ds.split('-')[1]-1, ds.split('-')[2], 12);
+      }
+    });
+
+    // Næste besøg skal være intervalDage efter sidst planlagte (eller fra i dag)
+    let næsteBesøg = sidstePlanlagt 
+      ? new Date(sidstePlanlagt.getTime() + intervalDage * 86400000)
+      : new Date(startDato);
+
+    // Planlæg alle besøg frem til slutdato
+    while (næsteBesøg <= slutDato) {
+      // Find nærmeste hverdag der ikke er spærret
+      let forsøg = new Date(næsteBesøg);
+      let fundet = false;
+      
+      for (let offset = 0; offset < 14; offset++) {
+        const test = new Date(forsøg.getTime() + offset * 86400000);
+        const dow = test.getDay(); // 0=søn, 6=lør
+        if (dow === 0 || dow === 6) continue; // Spring weekend over
+        const dowMon = (dow + 6) % 7; // 0=man...4=fre
+        if ((c.blockedDays||[]).includes(dowMon)) continue;
+        
+        const ds = localDateStr(test);
+        
+        // Tjek om kunden allerede er planlagt denne dag
+        if ((weekSchedule[ds]||[]).some(e => e.cid === c.id)) {
+          fundet = true;
+          næsteBesøg = new Date(test.getTime() + intervalDage * 86400000);
+          break;
+        }
+
+        // Find medarbejder med plads
+        if (!weekSchedule[ds]) weekSchedule[ds] = [];
+        
+        // Beregn dag-belastning for alle medarbejdere
+        const dagBelastning = {};
+        employees.forEach(emp => {
+          dagBelastning[emp.id] = (weekSchedule[ds]||[])
+            .filter(e => e.empId === emp.id)
+            .reduce((s,e) => { const cx=customers.find(x=>x.id===e.cid); return s+(cx?kundeTid(cx):30); }, 0);
+        });
+
+        // Find bedste medarbejder til denne dag
+        let bedstEmp = null;
+        let bedstEmpScore = -1;
+        employees.forEach(emp => {
+          const ledig = arbejdsdagMin - (dagBelastning[emp.id]||0);
+          if (ledig < kundeTid(c)) return;
+          // Bonus for kunder i samme zip
+          const sammeZip = (weekSchedule[ds]||[]).filter(e => {
+            const cx = customers.find(x => x.id === e.cid);
+            return cx && cx.zip === c.zip && e.empId === emp.id;
+          }).length;
+          const score = sammeZip * 200 + ledig;
+          if (score > bedstEmpScore) { bedstEmpScore=score; bedstEmp=emp; }
+        });
+
+        // Ingen medarbejder → prøv næste dag
+        if (!bedstEmp) continue;
+
+        weekSchedule[ds].push({
+          cid: c.id,
+          time: c.prefTime || '',
+          empId: bedstEmp.id
+        });
+        planlagtCount++;
+        fundet = true;
+        næsteBesøg = new Date(test.getTime() + intervalDage * 86400000);
+        break;
+      }
+      
+      if (!fundet) {
+        næsteBesøg = new Date(næsteBesøg.getTime() + 86400000);
+      }
+    }
+  });
+
+  saveToLocalStorage();
+  renderKalender();
+  toast(`Fremadrettet planlægning færdig ✓ — ${planlagtCount} besøg planlagt over ${måneder} måneder`);
 }
 
 </script>
