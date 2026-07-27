@@ -1724,48 +1724,12 @@ tr:hover td{background:#f7fbff;}
 
 <script>
 // ── DATA ──
-let customers = [
-  {id:1,first:'Thomas',last:'Kjærgaard',addr:'Marselis Boulevard 42, 8000 Aarhus C',zip:'8000',phone:'20 34 56 78',email:'tk@privat.dk',type:'Privat',status:'Aktiv',price:425,freq:'Månedlig',notes:'Portkode: 1234. Parkér ved siden af indkørslen.',blockedDays:[4],prefTime:'09:00',empId:1,
-   tasks:[{id:101,name:'Udvendige vinduer',price:275,freq:'Månedlig',duration:40},{id:102,name:'Altandøre og terrassedør',price:150,freq:'Månedlig',duration:20}]},
-  {id:2,first:'Marianne',last:'Søgaard',addr:'Åboulevarden 18, 8000 Aarhus C',zip:'8000',phone:'22 45 67 89',email:'ms@arbejde.dk',type:'Erhverv',status:'Aktiv',price:1850,freq:'Månedlig',notes:'Kontakt reception ved ankomst. Spørg efter Marianne.',blockedDays:[0],prefTime:'07:30',empId:1,
-   tasks:[{id:201,name:'Kontorfacade – alle etager',price:1200,freq:'Månedlig',duration:100},{id:202,name:'Indgangsparti og glasdøre',price:400,freq:'Månedlig',duration:30},{id:203,name:'Interne glaspartier',price:250,freq:'Kvartalsvis',duration:45}]},
-  {id:3,first:'Henrik',last:'Damgaard',addr:'Silkeborgvej 204, 8230 Åbyhøj',zip:'8230',phone:'31 23 45 67',email:'hd@mail.dk',type:'Privat',status:'Aktiv',price:310,freq:'Hver 2. måned',notes:'Hund i haven – ring 15 min før.',blockedDays:[],prefTime:'10:00',empId:2,
-   tasks:[{id:301,name:'Udvendige vinduer',price:310,freq:'Hver 2. måned',duration:50}]},
-  {id:4,first:'Scandic Hotel',last:'Aarhus',addr:'Vejlby Ringvej 2, 8240 Risskov',zip:'8240',phone:'86 17 17 17',email:'aarhus@scandic.dk',type:'Erhverv',status:'Aktiv',price:4200,freq:'Månedlig',notes:'Stort erhvervshotel. Kontakt: Driftschef Lars Munk.',blockedDays:[1],prefTime:'06:30',empId:2,
-   tasks:[{id:401,name:'Alle facadevinduer',price:2800,freq:'Månedlig',duration:150},{id:402,name:'Lobbyglas og indgange',price:900,freq:'Månedlig',duration:45},{id:403,name:'Poolområde glaspartier',price:500,freq:'Kvartalsvis',duration:40}]},
-];
-let visits=[
-  {id:10,customerId:1,date:'2026-02-17',price:425,note:'Udført. Lidt svært at nå øverste etage – stige næste gang.'},
-  {id:11,customerId:2,date:'2026-02-18',price:1850,note:'Alle vinduer gennemgået. Kunden meget tilfreds.'},
-  {id:12,customerId:3,date:'2026-01-20',price:310,note:'Standard besøg, ingen bemærkninger.'},
-  {id:13,customerId:4,date:'2026-02-10',price:4200,note:'Fuld hotel-rengøring. Ekstra tid på poolområde.'},
-];
-let route=[1,2,3,4];
-let deals=[
-  {id:20,title:'Privat villa – Holme',customer:'Søren Bak',value:5200,stage:0,prob:25,note:'Tilbud sendt – afventer svar'},
-  {id:21,title:'Tandlægeklinik Centrum',customer:'Tandlæge Poulsen',value:8400,stage:2,prob:70,note:'Forhandler om halvårlig aftale'},
-];
+let customers = [];
+let visits=[];
+let route=[];
+let deals=[];
 // weekSchedule: { "YYYY-MM-DD": [{cid, time, empId}] }
-function buildExampleSchedule(){
-  const sched={};
-  const now=new Date();
-  const dow=(now.getDay()+6)%7;
-  const monday=new Date(now);monday.setDate(now.getDate()-dow);monday.setHours(0,0,0,0);
-  const plan=[
-    {dayOffset:0, entries:[{cid:1,time:'09:00',empId:1},{cid:2,time:'07:30',empId:1}]},
-    {dayOffset:1, entries:[{cid:3,time:'10:00',empId:2},{cid:4,time:'06:30',empId:2}]},
-    {dayOffset:2, entries:[{cid:1,time:'09:00',empId:1},{cid:2,time:'13:00',empId:1}]},
-    {dayOffset:3, entries:[{cid:4,time:'06:30',empId:2}]},
-    {dayOffset:4, entries:[{cid:3,time:'10:00',empId:2}]},
-  ];
-  plan.forEach(({dayOffset,entries})=>{
-    const d=new Date(monday);d.setDate(monday.getDate()+dayOffset);
-    const ds=d.toISOString().slice(0,10);
-    sched[ds]=entries;
-  });
-  return sched;
-}
-let weekSchedule=buildExampleSchedule();
+let weekSchedule={};
 // visitStatuses: key = "dateStr_cid" → 'planned'|'enroute'|'done'
 let visitStatuses={};
 let invoiceCounter=1;
