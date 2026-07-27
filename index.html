@@ -2545,8 +2545,7 @@ function autoScheduleWeek(){
 
   // Ryd ugen først
   for(let i=0;i<5;i++){
-    const d=new Date(monday);d.setDate(d.getDate()+i);
-    delete weekSchedule[localDateStr(d)];
+    delete weekSchedule[localDateStr(addDays(monday,i))];
   }
 
   const arbejdsdagMin=7.5*60; // 450 min
