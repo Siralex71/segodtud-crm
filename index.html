@@ -2602,7 +2602,7 @@ function autoScheduleWeek(){
 
     dagTid[valgtDag]-=tid;
     const date=new Date(monday);date.setDate(date.getDate()+valgtDag);
-    const ds=date.toISOString().slice(0,10);
+    const ds=localDateStr(date);
     if(!weekSchedule[ds])weekSchedule[ds]=[];
     weekSchedule[ds].push({cid:c.id,time:c.prefTime||'',empId:c.empId||null});
   });
@@ -3468,7 +3468,7 @@ function renderKalender(){
 
 function renderKalWeek(){
   const dates=kalGetWeekDates();
-  const todayStr=new Date().toISOString().slice(0,10);
+  const todayStr=localDateStr(new Date());
   const dayLabels=['Man','Tir','Ons','Tor','Fre'];
   const isEmpKal=currentRole==='employee'&&currentEmpId;
 
@@ -5315,7 +5315,8 @@ function closeDayRoutePanel(){
 }
 
 function renderDayRoutePanel(ds){
-  const date=new Date(ds);
+  const [y,m,d]=ds.split('-').map(Number);
+  const date=new Date(y,m-1,d,12,0,0); // Lokal tid, ikke UTC
   const label=date.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long'});
   const entries=weekSchedule[ds]||[];
   // Use custom order if set, else sort by time then zip
