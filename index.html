@@ -583,6 +583,12 @@ tr:hover td{background:#f7fbff;}
         <button class="btn btn-green btn-sm" onclick="saveToLocalStorage();toast('Kalender gemt ✓')"><i class="fa fa-floppy-disk"></i> Gem</button>
         <div style="margin-left:auto;font-size:0.75rem;color:var(--muted);align-self:center;"><i class="fa fa-hand-pointer"></i> Træk kunder fra puljen nedenfor ind i kalender</div>
       </div>
+      <!-- Medarbejder toolbar - kun synlig for medarbejdere -->
+      <div id="kal-emp-toolbar" style="display:none;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding:10px 14px;background:var(--white);border-radius:10px;border:1px solid var(--border);box-shadow:var(--shadow);">
+        <span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);"><i class="fa fa-route" style="color:var(--blue)"></i> Min rute</span>
+        <button class="btn btn-primary btn-sm" onclick="åbnMinRuteIMaps()"><i class="fa fa-map"></i> Åbn dagens rute i Google Maps</button>
+        <button class="btn btn-outline btn-sm" onclick="åbnMinRuteIMaps('tomorrow')"><i class="fa fa-calendar-day"></i> Morgendagens rute</button>
+      </div>
       <!-- Calendar content + optional day route panel -->
       <div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start;">
         <div id="kal-content"></div>
@@ -3397,13 +3403,19 @@ function renderKalender(){
   // Update employee filter buttons – hide entirely for employees
   const ef=document.getElementById('kal-emp-filters');
   const filterAllBtn=document.getElementById('kal-filter-all');
+  const empToolbar=document.getElementById('kal-emp-toolbar');
+  const chefToolbar=document.getElementById('kal-plan-toolbar');
   if(empLocked){
     // Lock filter to this employee, hide all filter UI
     if(ef)ef.style.display='none';
     if(filterAllBtn)filterAllBtn.style.display='none';
     const filterLabel=document.querySelector('.kal-nav span[style*="color:var(--muted)"]');
     if(filterLabel)filterLabel.style.display='none';
+    if(empToolbar)empToolbar.style.display='flex';
+    if(chefToolbar)chefToolbar.style.display='none';
   } else {
+    if(empToolbar)empToolbar.style.display='none';
+    if(chefToolbar)chefToolbar.style.display='flex';
     if(ef){
       ef.style.display='flex';
       ef.innerHTML=employees.map(emp=>`<button class="kal-mode-btn${kalFilter===emp.id?' active':''}" id="kal-filter-${emp.id}" onclick="setKalFilter(${emp.id})" style="${kalFilter===emp.id?'background:'+emp.color+';border-color:'+emp.color+';color:#fff;':'border-color:'+emp.color+';color:'+emp.color+';'}">${emp.initials}</button>`).join('');
@@ -6987,6 +6999,39 @@ function startOptimering() {
   if (!dato) { toast('Vælg en dato'); return; }
   closeModal('modal-optimer-rute');
   optimerRute(empId, dato);
+}
+
+function åbnMinRuteIMaps(dag='today') {
+  const dato = dag === 'tomorrow'
+    ? new Date(Date.now() + 86400000).toISOString().slice(0,10)
+    : new Date().toISOString().slice(0,10);
+
+  const entries = (weekSchedule[dato] || []).filter(e => {
+    const c = customers.find(x => x.id === e.cid);
+    return c && c.empId === currentEmpId;
+  }).sort((a,b) => (a.time||'99:99').localeCompare(b.time||'99:99'));
+
+  if (entries.length === 0) {
+    toast('Ingen kunder planlagt ' + (dag==='tomorrow'?'i morgen':'i dag'));
+    return;
+  }
+
+  const emp = employees.find(e => e.id === currentEmpId);
+  const addrs = entries.map(e => {
+    const c = customers.find(x => x.id === e.cid);
+    return c ? encodeURIComponent(c.addr + ', Danmark') : null;
+  }).filter(Boolean);
+
+  let url;
+  if (emp && emp.homeAddr) {
+    const hjemEnc = encodeURIComponent(emp.homeAddr + ', Danmark');
+    url = 'https://www.google.com/maps/dir/' + hjemEnc + '/' + addrs.join('/') + '/' + hjemEnc;
+  } else {
+    url = 'https://www.google.com/maps/dir/' + addrs.join('/');
+  }
+
+  window.open(url, '_blank');
+  toast('Rute åbnet i Google Maps ✓');
 }
 
 </script>
