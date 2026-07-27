@@ -602,6 +602,7 @@ tr:hover td{background:#f7fbff;}
             <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;">
               <button class="btn btn-primary btn-sm" onclick="optimizeDayRoute()"><i class="fa fa-map-location-dot"></i> Optimer rækkefølge</button>
               <button class="btn btn-outline btn-sm" onclick="openDayGoogleMaps()"><i class="fa fa-map"></i> Google Maps</button>
+              <button class="btn btn-primary btn-sm" onclick="visOptimerRuteDialog()"><i class="fa fa-route"></i> Optimer rute</button>
             </div>
             <!-- Stop list -->
             <div id="drp-stops" style="max-height:480px;overflow-y:auto;"></div>
@@ -1346,6 +1347,7 @@ tr:hover td{background:#f7fbff;}
       <div class="form-group"><label>Farve</label><input type="color" id="emp-color" value="#1a73c8" style="height:38px;padding:2px 4px;width:100%;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;"></div>
       <div class="form-group"><label>Telefon</label><input id="emp-phone" placeholder="20 12 34 56"></div>
       <div class="form-group"><label>Email</label><input id="emp-email" placeholder="anders@firma.dk"></div>
+      <div class="form-group full"><label>🏠 Hjemmeadresse (til ruteoptimering)</label><input id="emp-homeaddr" placeholder="Strandvej 12, 4200 Slagelse"></div>
       <div class="form-group full"><label>Hjemmeadresse / postnummer <span style="color:var(--muted);font-weight:400">(bruges til ruteoptimering)</span></label><input id="emp-homezip" placeholder="fx 8000 eller Vestergade 1, 8000 Aarhus"></div>
       <div class="form-group"><label>Arbejdsstart (tidligste stop)</label><input type="time" id="emp-starttime" value="07:00"></div>
       <div class="form-group"><label>Arbejdsslut (seneste stop)</label><input type="time" id="emp-endtime" value="15:30"></div>
@@ -3196,6 +3198,7 @@ function openEmpModal(id){
     document.getElementById('emp-color').value=e.color;
     document.getElementById('emp-phone').value=e.phone||'';
     document.getElementById('emp-email').value=e.email||'';
+    if(document.getElementById('emp-homeaddr'))document.getElementById('emp-homeaddr').value=e.homeAddr||'';
     document.getElementById('emp-homezip').value=e.homezip||'';
     document.getElementById('emp-starttime').value=e.startTime||'07:00';
     document.getElementById('emp-endtime').value=e.endTime||'15:30';
@@ -3216,6 +3219,7 @@ function saveEmployee(){
     color:document.getElementById('emp-color').value,
     phone:document.getElementById('emp-phone').value,
     email:document.getElementById('emp-email').value,
+    homeAddr:document.getElementById('emp-homeaddr')?.value||'',
     homezip:document.getElementById('emp-homezip').value.trim(),
     startTime:document.getElementById('emp-starttime').value||'07:00',
     endTime:document.getElementById('emp-endtime').value||'15:30',
@@ -4136,10 +4140,11 @@ function renderTilbuds(){
 }
 
 // ── 🗺️ GOOGLE MAPS ──
+const GOOGLE_MAPS_API_KEY='AIzaSyDAp73AEz-AkqLqU5eTi3ifl4A73VA2kIo';
 let gmapInstance=null;
 let gmapMarkers=[];
 function initGoogleMap(){
-  const key=document.getElementById('gmap-api-key').value.trim();
+  const key=document.getElementById('gmap-api-key')?.value.trim()||GOOGLE_MAPS_API_KEY;
   if(!key){document.getElementById('gmap-api-wrap').style.display='flex';return;}
   // Load Google Maps script dynamically
   if(window.google&&window.google.maps){renderGoogleMap();return;}
@@ -4181,6 +4186,169 @@ function openGoogleMapsRoute(){
   const url=`https://www.google.com/maps/dir/${origin}/${waypoints?waypoints+'/':''}${dest}`;
   window.open(url,'_blank');
   toast('Google Maps åbnet i ny fane ✓');
+}
+
+
+// ── 🚗 RUTEOPTIMERINGSMOTOR ──
+async function optimerRute(medarbejderId, datoStr) {
+  const emp = employees.find(e => e.id === medarbejderId);
+  if (!emp) { toast('Medarbejder ikke fundet'); return; }
+  if (!emp.homeAddr) { toast('Medarbejder mangler hjemmeadresse — opdater profilen'); return; }
+
+  // Find kundens besøg denne dag
+  const dagEntries = (weekSchedule[datoStr] || []).filter(e => {
+    const c = customers.find(x => x.id === e.cid);
+    return c && c.empId === medarbejderId;
+  });
+
+  if (dagEntries.length === 0) { toast('Ingen kunder planlagt denne dag'); return; }
+
+  const kundeIds = dagEntries.map(e => e.cid);
+  const kundeAdresser = kundeIds.map(id => {
+    const c = customers.find(x => x.id === id);
+    return c ? c.addr + ', Danmark' : null;
+  }).filter(Boolean);
+
+  toast('Optimerer rute... ⏳');
+
+  // Brug Google Maps Directions API med waypoint optimering
+  if (!window.google || !window.google.maps) {
+    await loadGoogleMapsScript();
+  }
+
+  const directionsService = new google.maps.DirectionsService();
+
+  const waypoints = kundeAdresser.slice(1, -1).map(addr => ({
+    location: addr,
+    stopover: true
+  }));
+
+  const request = {
+    origin: emp.homeAddr + ', Danmark',
+    destination: emp.homeAddr + ', Danmark', // Tilbage til hjem
+    waypoints: kundeAdresser.map(addr => ({ location: addr, stopover: true })),
+    optimizeWaypoints: true, // Google optimerer rækkefølgen!
+    travelMode: google.maps.TravelMode.DRIVING,
+  };
+
+  directionsService.route(request, (result, status) => {
+    if (status !== 'OK') {
+      toast('Kunne ikke optimere rute: ' + status);
+      return;
+    }
+
+    // Hent optimeret rækkefølge fra Google
+    const optimizedOrder = result.routes[0].waypoint_order;
+    const optimizedKundeIds = optimizedOrder.map(i => kundeIds[i]);
+
+    // Beregn total tid
+    const legs = result.routes[0].legs;
+    let totalKøretidSek = 0;
+    let totalKundetidMin = 0;
+
+    legs.forEach((leg, i) => {
+      totalKøretidSek += leg.duration.value;
+    });
+
+    optimizedKundeIds.forEach(id => {
+      const c = customers.find(x => x.id === id);
+      if (c && c.tasks) {
+        totalKundetidMin += c.tasks.reduce((s, t) => s + (t.duration || 30), 0);
+      }
+    });
+
+    const totalTidMin = Math.round(totalKøretidSek / 60) + totalKundetidMin;
+    const arbejdsdagMin = 7.5 * 60; // 450 minutter
+
+    // Opdater tidspunkter i weekSchedule baseret på optimeret rækkefølge
+    let tidspunkt = new Date();
+    tidspunkt.setHours(7, 30, 0, 0); // Start 07:30
+
+    optimizedKundeIds.forEach((id, i) => {
+      const leg = legs[i];
+      // Tilføj køretid til næste kunde
+      tidspunkt = new Date(tidspunkt.getTime() + leg.duration.value * 1000);
+      const hh = String(tidspunkt.getHours()).padStart(2, '0');
+      const mm = String(tidspunkt.getMinutes()).padStart(2, '0');
+      const time = hh + ':' + mm;
+
+      // Gem optimeret tidspunkt
+      if (!weekSchedule[datoStr]) weekSchedule[datoStr] = [];
+      const idx = weekSchedule[datoStr].findIndex(e => e.cid === id);
+      if (idx >= 0) weekSchedule[datoStr][idx].time = time;
+
+      // Tilføj kundetid
+      const c = customers.find(x => x.id === id);
+      const kundetid = c && c.tasks ? c.tasks.reduce((s, t) => s + (t.duration || 30), 0) : 30;
+      tidspunkt = new Date(tidspunkt.getTime() + kundetid * 60 * 1000);
+    });
+
+    saveToLocalStorage();
+    renderKalender();
+
+    // Vis resultat
+    const overMin = totalTidMin > arbejdsdagMin ? totalTidMin - arbejdsdagMin : 0;
+    const farve = overMin > 0 ? 'var(--red)' : 'var(--green)';
+    const msg = overMin > 0
+      ? `Rute optimeret ✓ — OBS: ${Math.round(overMin)} min over 7,5 timer!`
+      : `Rute optimeret ✓ — ${optimizedKundeIds.length} kunder, ca. ${Math.round(totalTidMin/60*10)/10} timer total`;
+    toast(msg);
+
+    // Åbn rutevisning for medarbejder
+    visOptimeretRute(optimizedKundeIds, datoStr, result);
+  });
+}
+
+function loadGoogleMapsScript() {
+  return new Promise(resolve => {
+    if (window.google && window.google.maps) { resolve(); return; }
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
+    script.onload = resolve;
+    document.head.appendChild(script);
+  });
+}
+
+function visOptimeretRute(kundeIds, datoStr, directionsResult) {
+  document.getElementById('modal-rute-optimeret').classList.add('open');
+  const dato = new Date(datoStr).toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'long'});
+  document.getElementById('rute-dato').textContent = dato;
+
+  const liste = kundeIds.map((id, i) => {
+    const c = customers.find(x => x.id === id);
+    const entry = (weekSchedule[datoStr] || []).find(e => e.cid === id);
+    const tid = entry?.time || '–';
+    const kundetid = c && c.tasks ? c.tasks.reduce((s, t) => s + (t.duration || 30), 0) : 30;
+    const opgaver = c && c.tasks ? c.tasks.map(t => t.name).join(', ') : 'Vinduespudsning';
+    return `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);">
+      <div style="background:var(--blue);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">${i+1}</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:0.9rem;">${c ? c.first+' '+c.last : 'Ukendt'}</div>
+        <div style="font-size:0.78rem;color:var(--muted);">${c ? c.addr : ''}</div>
+        <div style="font-size:0.75rem;color:var(--blue);margin-top:2px;">${opgaver} — ${kundetid} min</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-weight:700;color:var(--blue);">${tid}</div>
+        <button onclick="åbnMaps('${c ? c.addr : ''}')" style="background:none;border:none;color:var(--muted);font-size:0.7rem;cursor:pointer;margin-top:4px;"><i class='fa fa-map-pin'></i> Maps</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('rute-liste').innerHTML = liste;
+
+  // Åbn hele ruten i Google Maps
+  document.getElementById('rute-abn-maps').onclick = () => {
+    const addrs = kundeIds.map(id => {
+      const c = customers.find(x => x.id === id);
+      return c ? encodeURIComponent(c.addr + ', Danmark') : null;
+    }).filter(Boolean);
+    const url = 'https://www.google.com/maps/dir/' + addrs.join('/');
+    window.open(url, '_blank');
+  };
+}
+
+function åbnMaps(adresse) {
+  window.open('https://www.google.com/maps/search/' + encodeURIComponent(adresse), '_blank');
 }
 
 // ── 📈 RAPPORT GENERATOR ──
@@ -6803,6 +6971,24 @@ function rydDemoData() {
   setTimeout(() => location.reload(), 2000);
 }
 
+function visOptimerRuteDialog() {
+  const sel = document.getElementById('optimer-emp');
+  sel.innerHTML = '<option value="">— Vælg medarbejder —</option>'
+    + employees.map(e => '<option value="'+e.id+'">'+e.first+' '+e.last+'</option>').join('');
+  // Sæt dato til i dag
+  document.getElementById('optimer-dato').value = new Date().toISOString().slice(0,10);
+  document.getElementById('modal-optimer-rute').classList.add('open');
+}
+
+function startOptimering() {
+  const empId = parseInt(document.getElementById('optimer-emp').value);
+  const dato = document.getElementById('optimer-dato').value;
+  if (!empId) { toast('Vælg en medarbejder'); return; }
+  if (!dato) { toast('Vælg en dato'); return; }
+  closeModal('modal-optimer-rute');
+  optimerRute(empId, dato);
+}
+
 </script>
 
 <!-- KUNDEKORT POPUP -->
@@ -6889,5 +7075,37 @@ function rydDemoData() {
     </div>
   </div>
 </div>
+<!-- OPTIMER RUTE DIALOG -->
+<div class="modal-bg" id="modal-optimer-rute" onclick="if(event.target===this)closeModal('modal-optimer-rute')">
+  <div class="modal" style="max-width:480px;">
+    <h3><i class="fa fa-route" style="color:var(--blue)"></i> Optimer rute</h3>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:16px;">Vælg medarbejder og dato — systemet beregner den optimale rækkefølge ud fra hjemmeadressen og indregner tid hos hver kunde.</p>
+    <div class="form-grid">
+      <div class="form-group full"><label>Medarbejder</label>
+        <select id="optimer-emp" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;"></select>
+      </div>
+      <div class="form-group full"><label>Dato</label>
+        <input type="date" id="optimer-dato" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn-outline" style="flex:1;" onclick="closeModal('modal-optimer-rute')">Annuller</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="startOptimering()"><i class="fa fa-route"></i> Optimer nu</button>
+    </div>
+  </div>
+</div>
+
+<!-- OPTIMERET RUTE RESULTAT -->
+<div class="modal-bg" id="modal-rute-optimeret" onclick="if(event.target===this)closeModal('modal-rute-optimeret')">
+  <div class="modal" style="max-width:520px;max-height:85vh;overflow-y:auto;">
+    <h3><i class="fa fa-check-circle" style="color:var(--green)"></i> Optimeret rute — <span id="rute-dato"></span></h3>
+    <div id="rute-liste" style="margin:16px 0;"></div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn btn-outline" style="flex:1;" onclick="closeModal('modal-rute-optimeret')">Luk</button>
+      <button class="btn btn-primary" style="flex:1;" id="rute-abn-maps"><i class="fa fa-map"></i> Åbn i Google Maps</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
