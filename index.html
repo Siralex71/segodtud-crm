@@ -2312,11 +2312,11 @@ function applySuggestion(dow){
 
 // ── WEEK PLANNER ──
 function getWeekStart(offset=0){
-  const d=new Date();
-  const day=d.getDay();
-  const diff=d.getDate()-day+(day===0?-6:1);
-  const monday=new Date(new Date().setDate(diff+offset*7));
-  monday.setHours(12,0,0,0);return monday;
+  const now=new Date();
+  const dow=now.getDay(); // 0=søn, 1=man...
+  const daysToMon = dow===0 ? -6 : 1-dow;
+  const monday=new Date(now.getFullYear(), now.getMonth(), now.getDate()+daysToMon+offset*7, 12, 0, 0);
+  return monday;
 }
 function changeWeek(dir){currentWeekOffset+=dir;kalOffset=currentWeekOffset;renderKalender();}
 function goToToday(){currentWeekOffset=0;kalOffset=0;renderKalender();}
@@ -2630,8 +2630,7 @@ function autoScheduleWeek(){
 
     tidsBeholdning[valgtDag] -= tid;
 
-    const date = new Date(monday);date.setDate(date.getDate()+valgtDag);date.setHours(12,0,0);
-    const ds = localDateStr(date);
+    const ds = localDateStr(addDays(monday, valgtDag));
     if(!weekSchedule[ds])weekSchedule[ds]=[];
     weekSchedule[ds].push({
       cid: c.id,
@@ -3433,10 +3432,16 @@ function kalGetWeekDates(){
   return Array.from({length:5},(_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return d;});
 }
 function localDateStr(d){
-  const y=d.getFullYear();
-  const m=String(d.getMonth()+1).padStart(2,'0');
-  const day=String(d.getDate()).padStart(2,'0');
+  // Lav altid en kopi med kl 12 for at undgå UTC-problemer
+  const safe = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0);
+  const y = safe.getFullYear();
+  const m = String(safe.getMonth()+1).padStart(2,'0');
+  const day = String(safe.getDate()).padStart(2,'0');
   return y+'-'+m+'-'+day;
+}
+function addDays(base, n){
+  // Tilføj dage uden UTC-problemer
+  return new Date(base.getFullYear(), base.getMonth(), base.getDate()+n, 12, 0, 0);
 }
 function kalGetMonthDates(){
   const now=new Date();
