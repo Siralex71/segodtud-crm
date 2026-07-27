@@ -2570,84 +2570,31 @@ function autoScheduleWeek(){
     const tid = kundeTid(c);
     const blocked = c.blockedDays||[];
 
-    // Bestem hvem der skal have kunden
-    // 1. Kunden har en specifik medarbejder
-    // 2. Find medarbejder med plads i samme område
-    // 3. Ellers chef
-
-    // Find bedste medarbejder OG dag på én gang
-    // Ignorer empId - lad systemet optimere selv
-    // Prioriter: 1) medarbejder der allerede er i samme postnummer, 2) medarbejder med plads
+    // Find bedste dag + medarbejder
+    // Prioriter: 1) tidligst mulig dag (mandag=højest score), 2) medarbejder med flest kunder samme dag
     let tildeltUid = null;
-    let valgtDagFørst = -1;
+    let valgtDag = -1;
+    let bedstScore = -1;
 
-    // Gennemgå alle dage og medarbejdere og find den bedste kombination
-    let bedstKomboScore = -1;
     for(let d=0;d<5;d++){
       if(blocked.includes(d)) continue;
       const ds = localDateStr(addDays(monday, d));
-      
-      // Hvem er allerede planlagt denne dag?
       const dagEntries = weekSchedule[ds] || [];
-      
-      employees.forEach(emp => {
-        if(dagTidMap[emp.id][d] < tid) return; // Ikke plads
-        
-        // Score: bonus for kunder i samme zip denne dag hos denne medarbejder
-        const sammeZip = dagEntries.filter(e => {
-          const cx = customers.find(x => x.id === e.cid);
-          return cx && cx.zip === c.zip && e.empId === emp.id;
-        }).length;
-        
-        // Bonus for at det er en tidlig dag
-        const dagBonus = (4-d) * 10;
-        const score = sammeZip * 200 + dagBonus;
-        
-        if(score > bedstKomboScore){
-          bedstKomboScore = score;
-          tildeltUid = emp.id;
-          valgtDagFørst = d;
-        }
+
+      [...employees.map(e=>e.id), 'chef'].forEach(uid => {
+        const beholdning = dagTidMap[uid] || dagTidMap['chef'];
+        if(!beholdning || beholdning[d] < tid) return;
+        const empKunderDag = dagEntries.filter(e => e.empId === (uid==='chef'?null:uid)).length;
+        const dagScore = (4-d) * 1000;
+        const sameDayBonus = empKunderDag * 500;
+        const score = dagScore + sameDayBonus;
+        if(score > bedstScore){ bedstScore=score; tildeltUid=uid; valgtDag=d; }
       });
     }
 
-    // Fallback: første medarbejder med plads på tidligste dag
-    if(tildeltUid === null){
-      for(let d=0;d<5;d++){
-        if(blocked.includes(d)) continue;
-        for(const emp of employees){
-          if(dagTidMap[emp.id][d] >= tid){
-            tildeltUid = emp.id;
-            valgtDagFørst = d;
-            break;
-          }
-        }
-        if(tildeltUid !== null) break;
-      }
-    }
-
-    // Stadig ingen? Brug chef
-    if(tildeltUid === null){ tildeltUid = 'chef'; valgtDagFørst = 0; }
-
+    if(tildeltUid === null){ tildeltUid = employees[0]?.id||'chef'; valgtDag=0; }
     const tidsBeholdning = dagTidMap[tildeltUid] || dagTidMap['chef'];
 
-    // Brug den dag vi allerede fandt i kombinations-søgningen
-    let valgtDag = valgtDagFørst;
-    // Verificer at der er plads
-    if(valgtDag === -1 || tidsBeholdning[valgtDag] < tid){
-      for(let d=0;d<5;d++){
-        if(blocked.includes(d))continue;
-        if(tidsBeholdning[d] >= tid){ valgtDag=d; break; }
-      }
-    }
-
-    if(valgtDag===-1){
-      // Fallback: dag med mest tid
-      for(let d=0;d<5;d++){
-        if(blocked.includes(d))continue;
-        if(tidsBeholdning[d]>=(tidsBeholdning[valgtDag]||0))valgtDag=d;
-      }
-    }
     if(valgtDag===-1)valgtDag=0;
 
     tidsBeholdning[valgtDag] -= tid;
