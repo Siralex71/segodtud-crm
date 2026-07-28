@@ -1862,8 +1862,23 @@ function renderDashboard(){
   const now=new Date();
   const m=now.getMonth(),y=now.getFullYear();
   const monthRev=myVisits.filter(v=>{const d=new Date(v.date);return d.getMonth()===m&&d.getFullYear()===y;}).reduce((s,v)=>s+v.price,0);
-  // Expected this month from active customers
-  const expectedMonth=Math.round(expectedAnnual/12);
+  // Expected this month - beregn præcist baseret på hvilke kunder der besøges denne måned
+  const expectedMonth=Math.round(activeCustomers.reduce((s,c)=>{
+    if(c.tasks&&c.tasks.length){
+      return s+c.tasks.reduce((ts,t)=>{
+        if(t.freq==='Efter behov'&&!t.active) return ts;
+        const tf=freqPerYear[t.freq]||freqPerYear[c.freq]||12;
+        const ti=Math.round(12/tf);
+        if(m%ti===0) return ts+(t.price||0);
+        return ts;
+      },0);
+    } else {
+      const fp=freqPerYear[c.freq]||12;
+      const ti=Math.round(12/fp);
+      if(m%ti===0) return s+customerPrice(c);
+      return s;
+    }
+  },0));
   const monthPct=expectedMonth>0?Math.round((monthRev/expectedMonth)*100):0;
 
   // Employee view – show simplified stats
