@@ -473,7 +473,7 @@ tr:hover td{background:#f7fbff;}
   <nav class="sidebar-nav">
     <button class="nav-item active" onclick="showView('dashboard',this)"><i class="fa fa-chart-pie"></i> Dashboard</button>
     <button class="nav-item" onclick="showView('kalender',this)"><i class="fa fa-calendar-days"></i> Kalender</button>
-    <button class="nav-item" onclick="showView('arshjul',this)"><i class="fa fa-circle-dot"></i> Årshjul</button>
+
     <button class="nav-item" onclick="showView('customers',this)"><i class="fa fa-users"></i> Kunder</button>
     <button class="nav-item" onclick="showView('hovedkunder',this)"><i class="fa fa-building"></i> Hovedkunder</button>
     <button class="nav-item" onclick="showView('grupper',this)"><i class="fa fa-layer-group"></i> Grupper</button>
@@ -656,78 +656,6 @@ tr:hover td{background:#f7fbff;}
 </button>
 
     <!-- ÅRSHJUL -->
-    <div class="view" id="view-arshjul">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-        <div><h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;">Årshjul</h2><p style="font-size:0.78rem;color:var(--muted)">Hvornår på året besøges dine kunder – klik på en måned for detaljer</p></div>
-        <div style="display:flex;gap:8px;">
-          <select id="arshjul-year" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;" onchange="renderArshjul()"></select>
-          <select id="arshjul-emp" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;" onchange="renderArshjul()">
-            <option value="all">Alle medarbejdere</option>
-          </select>
-        </div>
-      </div>
-      <div class="card" id="arshjul-detail" style="display:none;margin-bottom:18px;">
-        <div class="card-header"><h3 id="arshjul-detail-title"></h3></div>
-        <div id="arshjul-detail-list" style="padding:8px 0;"></div>
-      </div>
-      <div class="card" style="margin-bottom:18px;">
-        <div style="padding:18px;" id="arshjul-grid"></div>
-      </div>
-    </div>
-
-    <!-- HOVEDKUNDER -->
-    <div class="view" id="view-hovedkunder">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-        <div><h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;">Hovedkunder</h2><p style="font-size:0.78rem;color:var(--muted)">Erhvervskunder med flere lokationer – samlet månedsfaktura</p></div>
-        <button class="btn btn-primary" onclick="openParentModal()"><i class="fa fa-plus"></i> Ny hovedkunde</button>
-      </div>
-      <div id="parent-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px;margin-bottom:24px;"></div>
-    </div>
-
-    <!-- KUNDEGRUPPER -->
-    <div class="view" id="view-grupper">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-        <div><h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;">Kundegrupper</h2><p style="font-size:0.78rem;color:var(--muted)">Opret grupper til hurtig filtrering og planlægning</p></div>
-        <button class="btn btn-primary" onclick="openGroupModal()"><i class="fa fa-plus"></i> Ny gruppe</button>
-      </div>
-      <div id="grupper-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-bottom:20px;"></div>
-      <div class="card" id="gruppe-customer-panel" style="display:none;">
-        <div class="card-header"><h3 id="gruppe-customer-title">Kunder i gruppe</h3><button class="btn btn-outline btn-sm" onclick="document.getElementById('gruppe-customer-panel').style.display='none'">Luk</button></div>
-        <div id="gruppe-customer-list" style="padding:8px 0;"></div>
-      </div>
-    </div>
-
-    <!-- POSTNUMMER KORT -->
-    <div class="view" id="view-zipmap">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-        <div><h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;">Postnummer-kort</h2><p style="font-size:0.78rem;color:var(--muted)">Overblik over dine kunder geografisk – klik på en prik for detaljer</p></div>
-        <div style="display:flex;gap:8px;">
-          <select id="zipmap-emp-filter" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;" onchange="renderZipMap()">
-            <option value="all">Alle medarbejdere</option>
-          </select>
-          <select id="zipmap-tag-filter" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;" onchange="renderZipMap()">
-            <option value="all">Alle tags</option>
-          </select>
-        </div>
-      </div>
-      <div class="zip-map-wrap">
-        <div class="card" style="padding:16px;">
-          <div id="zip-map-container"></div>
-          <div id="zip-map-legend" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;"></div>
-        </div>
-        <div>
-          <div class="card" style="margin-bottom:14px;">
-            <div class="card-header"><h3>Zones</h3></div>
-            <div id="zip-zone-list" style="max-height:300px;overflow-y:auto;"></div>
-          </div>
-          <div class="card" id="zip-detail-card" style="display:none;">
-            <div class="card-header"><h3 id="zip-detail-title">Postnummer</h3></div>
-            <div id="zip-detail-list" style="padding:8px 0;"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- DASHBOARD -->
     <div class="view" id="view-dashboard">
       <!-- Medarbejder today stat -->
