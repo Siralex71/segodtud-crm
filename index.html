@@ -521,6 +521,14 @@ tr:hover td{background:#f7fbff;}
   <div class="content">
 
     <!-- ØKONOMI -->
+    <div class="view" id="view-hovedkunder">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <div><h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;">Hovedkunder</h2><p style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Samlet overblik over dine erhvervskunder</p></div>
+        <button class="btn btn-primary" onclick="openParentModal()"><i class="fa fa-plus"></i> Ny hovedkunde</button>
+      </div>
+      <div class="customer-grid" id="parent-grid"></div>
+    </div>
+
     <div class="view" id="view-okonomi">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
         <div><h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;">Økonomi</h2><p style="font-size:0.78rem;color:var(--muted)">Omsætning, fakturaer og månedlig sammenligning</p></div>
