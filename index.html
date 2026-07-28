@@ -669,7 +669,7 @@ tr:hover td{background:#f7fbff;}
         <div class="stat-card blue" id="stat-card-actual-rev"><div class="stat-label">Faktisk omsætning</div><div class="stat-value" id="stat-actual-rev">0</div><div class="stat-sub" id="stat-actual-rev-sub">kr. ex. moms – alle besøg</div><i class="fa fa-coins stat-icon"></i></div>
         <div class="stat-card green" id="stat-card-annual"><div class="stat-label">Forventet årsomsætning</div><div class="stat-value" id="stat-annual-rev">0</div><div class="stat-sub" id="stat-annual-rev-sub">kr. ex. moms – baseret på aftaler</div><i class="fa fa-chart-line stat-icon"></i></div>
         <div class="stat-card orange" id="stat-card-month"><div class="stat-label">Denne måneds omsætning</div><div class="stat-value" id="stat-month-rev">0</div><div class="stat-sub" id="stat-month-rev-sub">kr. ex. moms</div><i class="fa fa-calendar-day stat-icon"></i></div>
-        <div class="stat-card yellow" id="stat-card-pipeline"><div class="stat-label">Pipeline værdi</div><div class="stat-value" id="stat-pipeline">0</div><div class="stat-sub">kr. potentielt</div><i class="fa fa-filter stat-icon"></i></div>
+        <div class="stat-card yellow" id="stat-card-pipeline"><div class="stat-label">Udestående tilbud</div><div class="stat-value" id="stat-pipeline">0</div><div class="stat-sub" id="stat-pipeline-sub">kr. afventer svar</div><i class="fa fa-file-invoice stat-icon"></i></div>
       </div>
       <div id="due-banner-wrap"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
@@ -1838,7 +1838,11 @@ function renderDashboard(){
     document.getElementById('stat-month-rev').textContent=monthRev.toLocaleString('da-DK');
     document.getElementById('stat-month-rev-sub').innerHTML=`kr. ex. moms · <span style="color:${monthPct>=100?'var(--green)':monthPct>=50?'var(--orange)':'var(--red)'};font-weight:700;">${monthPct}%</span> af forventet ${expectedMonth.toLocaleString('da-DK')} kr.`;
 
-    document.getElementById('stat-pipeline').textContent=Math.round(deals.reduce((s,d)=>s+d.value*(d.prob/100),0)).toLocaleString('da-DK');
+    // Udestående tilbud = tilbud der ikke er accepteret/afvist endnu
+    const udestående = tilbuds.filter(t => !t.status || t.status === 'Sendt' || t.status === 'Afventer');
+    const udeståendeVærdi = udestående.reduce((s,t) => s + (t.lines||[]).reduce((ls,l)=>ls+(l.qty||1)*(l.price||0),0), 0);
+    document.getElementById('stat-pipeline').textContent = Math.round(udeståendeVærdi).toLocaleString('da-DK');
+    document.getElementById('stat-pipeline-sub').textContent = udestående.length + ' tilbud afventer svar';
   }
 
   // Due banner – only show employee's own customers
