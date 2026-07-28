@@ -6505,30 +6505,47 @@ function renderArshjul(){
 
   // For each customer, calculate which months they're visited
   function getVisitMonths(c){
-    const fp=freqPerYear[c.freq]||12;
-    const interval=Math.round(12/fp);
-    const months=[];
-    for(let m=0;m<12;m+=interval)months.push(m);
-    return months;
+    // Saml alle måneder kunden besøges baseret på alle opgavers frekvenser
+    const monthSet=new Set();
+    if(c.tasks&&c.tasks.length){
+      c.tasks.forEach(t=>{
+        if(t.freq==='Efter behov') return;
+        const tf=freqPerYear[t.freq]||freqPerYear[c.freq]||12;
+        const interval=Math.round(12/tf);
+        for(let m=0;m<12;m+=interval) monthSet.add(m);
+      });
+    }
+    if(monthSet.size===0){
+      const fp=freqPerYear[c.freq]||12;
+      const interval=Math.round(12/fp);
+      for(let m=0;m<12;m+=interval) monthSet.add(m);
+    }
+    return [...monthSet].sort((a,b)=>a-b);
   }
 
   // Build grid: rows=customers, cols=months
   const grid=document.getElementById('arshjul-grid');
   if(!grid)return;
 
-  // Month revenue totals
+  // Month revenue totals - beregn præcist per opgave per måned
   const monthRevs=Array.from({length:12},(_,m)=>{
     return shown.reduce((s,c)=>{
-      const months=getVisitMonths(c);
-      if(months.includes(m)){
-        const taskPrice=c.tasks&&c.tasks.length?c.tasks.filter(t=>{
+      if(c.tasks&&c.tasks.length){
+        // Summer kun de opgaver der er planlagt denne måned
+        return s+c.tasks.reduce((ts,t)=>{
+          if(t.freq==='Efter behov'&&!t.active) return ts;
           const tf=freqPerYear[t.freq]||freqPerYear[c.freq]||12;
-          const ti=Math.round(12/tf);
-          return m%ti===0;
-        }).reduce((ts,t)=>ts+t.price,0):customerPrice(c);
-        return s+taskPrice;
+          const ti=Math.round(12/tf); // interval i måneder
+          if(m%ti===0) return ts+(t.price||0);
+          return ts;
+        },0);
+      } else {
+        // Ingen opgaver - brug kundepris og frekvens
+        const fp=freqPerYear[c.freq]||12;
+        const ti=Math.round(12/fp);
+        if(m%ti===0) return s+customerPrice(c);
+        return s;
       }
-      return s;
     },0);
   });
   const maxMonthRev=Math.max(...monthRevs,1);
