@@ -595,6 +595,13 @@ tr:hover td{background:#f7fbff;}
         <button class="btn btn-primary btn-sm" onclick="åbnMinRuteIMaps()"><i class="fa fa-map"></i> Åbn dagens rute i Google Maps</button>
         <button class="btn btn-outline btn-sm" onclick="åbnMinRuteIMaps('tomorrow')"><i class="fa fa-calendar-day"></i> Morgendagens rute</button>
       </div>
+      <!-- Unscheduled pool – øverst -->
+      <div id="kal-pool-wrap" style="margin-bottom:16px;">
+        <div class="week-unscheduled">
+          <h4><i class="fa fa-inbox"></i> Ikke planlagte – træk ind i kalenderen</h4>
+          <div id="unscheduled-pool"></div>
+        </div>
+      </div>
       <!-- Calendar content + optional day route panel -->
       <div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start;">
         <div id="kal-content"></div>
@@ -621,13 +628,7 @@ tr:hover td{background:#f7fbff;}
           </div>
         </div>
       </div>
-      <!-- Unscheduled pool – only visible in week mode -->
-      <div id="kal-pool-wrap" style="margin-top:16px;">
-        <div class="week-unscheduled">
-          <h4><i class="fa fa-inbox"></i> Ikke planlagte – træk ind i kalenderen</h4>
-          <div id="unscheduled-pool"></div>
-        </div>
-      </div>
+
     </div>
 
     <!-- FAKTURAER -->
